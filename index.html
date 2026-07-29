@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaZe Mods Hub - La référence des mods Minecraft</title>
+    
+    <!-- SEO & Social Media Meta Tags -->
+    <meta name="description" content="Découvrez, filtrez et téléchargez les meilleurs mods Minecraft pour toutes les versions : Performance, Shaders, PvP, Utilitaires et plus encore.">
+    <meta name="keywords" content="Minecraft, Mods, Sodium, Shaders, Fabric, Forge, Modpacks, KaZe Mods Hub">
+    <meta name="author" content="KaZe Mods Hub">
+    
+    <meta property="og:title" content="KaZe Mods Hub - Hub de Mods Minecraft">
+    <meta property="og:description" content="Téléchargez les meilleurs mods Minecraft optimisés.">
+    <meta property="og:image" content="https://kaze-mods-hub.com/og-image.jpg">
+    <meta property="og:type" content="website">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="KaZe Mods Hub">
+    <meta name="twitter:description" content="Découvrez et téléchargez les meilleurs mods Minecraft.">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#D32F2F">
+    
+    <!-- Styling & Icons -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Ecran de Chargement -->
+    <div id="app-loader" class="loader-overlay">
+        <div class="cube-wrapper">
+            <div class="mc-cube"></div>
+            <p>Chargement du Hub...</p>
+        </div>
+    </div>
+
+    <!-- Barre de Navigation -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="brand-logo">
+                <i class="fa-solid fa-cube logo-icon"></i>
+                <span>KaZe <strong>Mods Hub</strong></span>
+            </a>
+            
+            <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <nav class="nav-menu" id="navMenu">
+                <a href="index.html" class="active"><i class="fa-solid fa-house"></i> Accueil</a>
+                <a href="#mods-section"><i class="fa-solid fa-cubes"></i> Mods</a>
+                <a href="#categories-section"><i class="fa-solid fa-layer-group"></i> Catégories</a>
+                <a href="https://discord.gg" target="_blank" class="btn-social discord"><i class="fa-brands fa-discord"></i> Discord</a>
+                <a href="https://youtube.com" target="_blank" class="btn-social youtube"><i class="fa-brands fa-youtube"></i> YouTube</a>
+                <a href="admin.html" class="admin-link" title="Administration"><i class="fa-solid fa-user-gear"></i></a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section & Recherche -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1>Boostez votre expérience <span>Minecraft</span></h1>
+            <p>Trouvez les meilleurs mods pour optimiser vos performances, améliorer le rendu visuel et enrichir votre gameplay.</p>
+            
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Rechercher un mod, exemple: Sodium..." autocomplete="off">
+                <button id="clearSearch" class="clear-btn hidden"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Catégories -->
+    <section class="categories-section" id="categories-section">
+        <h2>Catégories</h2>
+        <div class="category-pills" id="categoryPills">
+            <button class="pill active" data-category="all">Toutes</button>
+            <button class="pill" data-category="Performance">Performance</button>
+            <button class="pill" data-category="Shaders">Shaders</button>
+            <button class="pill" data-category="Utilitaires">Utilitaires</button>
+            <button class="pill" data-category="PvP">PvP</button>
+            <button class="pill" data-category="Décoration">Décoration</button>
+            <button class="pill" data-category="Monde">Monde</button>
+            <button class="pill" data-category="Mobs">Mobs</button>
+            <button class="pill" data-category="Structures">Structures</button>
+            <button class="pill" data-category="Mini-jeux">Mini-jeux</button>
+            <button class="pill" data-category="Autres">Autres</button>
+        </div>
+    </section>
+
+    <!-- Section Mods & Filtres -->
+    <main class="mods-section" id="mods-section">
+        <div class="controls-bar">
+            <div class="results-count" id="resultsCount">Chargement des mods...</div>
+            <div class="sort-selector">
+                <label for="sortSelect"><i class="fa-solid fa-sort"></i> Trier par :</label>
+                <select id="sortSelect">
+                    <option value="recent">Plus récents</option>
+                    <option value="downloads">Plus téléchargés</option>
+                    <option value="name">Ordre alphabétique</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="mods-grid" id="modsGrid">
+            <!-- Injecté dynamiquement par JavaScript -->
+        </div>
+
+        <div id="noResults" class="no-results hidden">
+            <i class="fa-solid fa-ghost"></i>
+            <h3>Aucun mod trouvé</h3>
+            <p>Essayez de réinitialiser vos critères de recherche ou vos filtres.</p>
+        </div>
+    </main>
+
+    <!-- Pied de Page -->
+    <footer>
+        <div class="footer-container">
+            <p>&copy; 2026 <strong>KaZe Mods Hub</strong>. Non affilié à Mojang Studios ou Microsoft.</p>
+            <div class="footer-links">
+                <a href="sitemap.xml">Sitemap</a>
+                <a href="admin.html">Espace Administration</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bouton Retour en haut -->
+    <button id="scrollTopBtn" class="scroll-top-btn" aria-label="Retour en haut">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <script type="module" src="script.js"></script>
+    <script>
+        // Enregistrement du Service Worker PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js');
+            });
+        }
+    </script>
+</body>
+  </html>
