@@ -16,7 +16,7 @@ const formTitle = document.getElementById('formTitle');
 
 let modsList = [];
 
-// Écouteur d'état d'authentification
+// Écouteur de statut de connexion
 onAuthStateChanged(auth, (user) => {
     if (user) {
         if (authOverlay) authOverlay.classList.add('hidden');
@@ -42,7 +42,7 @@ if (loginForm) {
         } catch (err) {
             console.error("Erreur de connexion :", err);
             if (authError) {
-                authError.innerText = "Erreur de connexion : " + err.message;
+                authError.innerText = "Erreur : " + err.message;
                 authError.classList.remove('hidden');
             }
         }
@@ -52,7 +52,7 @@ if (loginForm) {
 // Déconnexion
 if (logoutBtn) logoutBtn.addEventListener('click', () => signOut(auth));
 
-// Charger la liste des mods
+// Charger la liste des mods dans le tableau d'admin
 async function loadAdminMods() {
     try {
         const snap = await getDocs(collection(db, "mods"));
@@ -82,7 +82,7 @@ async function loadAdminMods() {
     }
 }
 
-// Soumission du formulaire (Ajout / Modification)
+// Soumission du formulaire (Création / Modification)
 if (modForm) {
     modForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -94,14 +94,14 @@ if (modForm) {
         const loader = document.getElementById('modLoader').value;
         const author = document.getElementById('modAuthor').value;
         const tags = document.getElementById('modTags').value.split(',').map(t => t.trim());
-        const downloadUrl = document.getElementById('modDownloadUrl').value;
-        const officialSite = document.getElementById('modOfficialSite').value;
+        const modrinthUrl = document.getElementById('modModrinthUrl').value;
+        const curseforgeUrl = document.getElementById('modCurseforgeUrl').value;
         const description = document.getElementById('modDescription').value;
         const imageUrl = document.getElementById('modImageUrl').value.trim();
 
         const modData = {
             name, category, mcVersion, loader, author, tags,
-            downloadUrl, officialSite, description, imageUrl,
+            modrinthUrl, curseforgeUrl, description, imageUrl,
             updatedAt: new Date().toISOString()
         };
 
@@ -121,6 +121,7 @@ if (modForm) {
     });
 }
 
+// Édition d'un mod
 window.editMod = (id) => {
     const m = modsList.find(x => x.id === id);
     if (!m) return;
@@ -132,8 +133,8 @@ window.editMod = (id) => {
     document.getElementById('modLoader').value = m.loader;
     document.getElementById('modAuthor').value = m.author;
     document.getElementById('modTags').value = m.tags ? m.tags.join(', ') : '';
-    document.getElementById('modDownloadUrl').value = m.downloadUrl || '';
-    document.getElementById('modOfficialSite').value = m.officialSite || '';
+    document.getElementById('modModrinthUrl').value = m.modrinthUrl || '';
+    document.getElementById('modCurseforgeUrl').value = m.curseforgeUrl || '';
     document.getElementById('modImageUrl').value = m.imageUrl || '';
     document.getElementById('modDescription').value = m.description;
 
@@ -142,6 +143,7 @@ window.editMod = (id) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
+// Suppression d'un mod
 window.deleteMod = async (id) => {
     if (confirm("Voulez-vous vraiment supprimer ce mod ?")) {
         try {
@@ -160,4 +162,4 @@ function resetForm() {
     document.getElementById('modId').value = '';
     if (formTitle) formTitle.innerText = "Ajouter un nouveau mod";
     if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
-                                  }
+                                                    }
