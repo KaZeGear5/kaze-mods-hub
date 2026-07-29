@@ -1,7 +1,6 @@
-import { db, auth, storage } from './firebase.js';
+import { db, auth } from './firebase.js';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
 // Éléments DOM
 const authOverlay = document.getElementById('authOverlay');
@@ -20,36 +19,40 @@ let modsList = [];
 // Écouteur d'état d'authentification
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        authOverlay.classList.add('hidden');
-        adminDashboard.classList.remove('hidden');
+        if (authOverlay) authOverlay.classList.add('hidden');
+        if (adminDashboard) adminDashboard.classList.remove('hidden');
         loadAdminMods();
     } else {
-        authOverlay.classList.remove('hidden');
-        adminDashboard.classList.add('hidden');
+        if (authOverlay) authOverlay.classList.remove('hidden');
+        if (adminDashboard) adminDashboard.classList.add('hidden');
     }
 });
 
 // Traitement de la connexion
-loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    authError.classList.add('hidden');
-    
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
+if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (authError) authError.classList.add('hidden');
+        
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
 
-    try {
-        await signInWithEmailAndPassword(auth, email, password);
-    } catch (err) {
-        console.error("Erreur de connexion :", err);
-        authError.innerText = "Erreur de connexion : " + err.message;
-        authError.classList.remove('hidden');
-    }
-});
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (err) {
+            console.error("Erreur de connexion :", err);
+            if (authError) {
+                authError.innerText = "Erreur de connexion : " + err.message;
+                authError.classList.remove('hidden');
+            }
+        }
+    });
+}
 
 // Déconnexion
-logoutBtn.addEventListener('click', () => signOut(auth));
+if (logoutBtn) logoutBtn.addEventListener('click', () => signOut(auth));
 
-// Charger la liste des mods dans le tableau d'administration
+// Charger la liste des mods
 async function loadAdminMods() {
     try {
         const snap = await getDocs(collection(db, "mods"));
@@ -75,7 +78,7 @@ async function loadAdminMods() {
             `).join('');
         }
     } catch (err) {
-        console.error("Erreur lors du chargement des mods :", err);
+        console.error("Erreur chargement mods :", err);
     }
 }
 
@@ -94,17 +97,7 @@ if (modForm) {
         const downloadUrl = document.getElementById('modDownloadUrl').value;
         const officialSite = document.getElementById('modOfficialSite').value;
         const description = document.getElementById('modDescription').value;
-        
-        // Gestion de l'image (fichier ou URL)
-        const fileInput = document.getElementById('modImageFile');
-        let imageUrl = document.getElementById('modImageUrl').value;
-
-        if (fileInput && fileInput.files.length > 0) {
-            const file = fileInput.files[0];
-            const storageRef = ref(storage, `mods/${Date.now()}_${file.name}`);
-            const snapshot = await uploadBytes(storageRef, file);
-            imageUrl = await getDownloadURL(snapshot.ref);
-        }
+        const imageUrl = document.getElementById('modImageUrl').value.trim();
 
         const modData = {
             name, category, mcVersion, loader, author, tags,
@@ -114,22 +107,20 @@ if (modForm) {
 
         try {
             if (id) {
-                // Modification
                 await updateDoc(doc(db, "mods", id), modData);
             } else {
-                // Création
                 modData.downloads = 0;
                 await addDoc(collection(db, "mods"), modData);
             }
             resetForm();
             loadAdminMods();
+            alert("Mod enregistré avec succès !");
         } catch (err) {
             alert("Erreur lors de l'enregistrement : " + err.message);
         }
     });
 }
 
-// Fonctions globales pour l'édition et la suppression
 window.editMod = (id) => {
     const m = modsList.find(x => x.id === id);
     if (!m) return;
@@ -141,7 +132,7 @@ window.editMod = (id) => {
     document.getElementById('modLoader').value = m.loader;
     document.getElementById('modAuthor').value = m.author;
     document.getElementById('modTags').value = m.tags ? m.tags.join(', ') : '';
-    document.getElementById('modDownloadUrl').value = m.downloadUrl;
+    document.getElementById('modDownloadUrl').value = m.downloadUrl || '';
     document.getElementById('modOfficialSite').value = m.officialSite || '';
     document.getElementById('modImageUrl').value = m.imageUrl || '';
     document.getElementById('modDescription').value = m.description;
@@ -162,13 +153,11 @@ window.deleteMod = async (id) => {
     }
 };
 
-if (cancelEditBtn) {
-    cancelEditBtn.addEventListener('click', resetForm);
-}
+if (cancelEditBtn) cancelEditBtn.addEventListener('click', resetForm);
 
 function resetForm() {
     if (modForm) modForm.reset();
     document.getElementById('modId').value = '';
     if (formTitle) formTitle.innerText = "Ajouter un nouveau mod";
     if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
-                      }
+                                  }
