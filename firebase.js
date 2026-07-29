@@ -6,12 +6,13 @@ import { getStorage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-s
 
 // TODO: Remplacez par votre configuration Firebase Console
 const firebaseConfig = {
-  apiKey: "VOTRE_API_KEY",
-  authDomain: "votre-projet.firebaseapp.com",
-  projectId: "votre-projet",
-  storageBucket: "votre-projet.appspot.com",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:web:abcdef123456"
+  apiKey: "AIzaSyCWKoe4o8NlJq78uL98r2A8pHQ0aBj0NCQ",
+  authDomain: "kaze-mods-hub.firebaseapp.com",
+  projectId: "kaze-mods-hub",
+  storageBucket: "kaze-mods-hub.firebasestorage.app",
+  messagingSenderId: "716627763619",
+  appId: "1:716627763619:web:225f8c064a93e2bbad7a16",
+  measurementId: "G-21B7NGJN3Q"
 };
 
 // Initialisation
