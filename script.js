@@ -1,101 +1,64 @@
 import { db } from './firebase.js';
 import { collection, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-let modsData = [];
-let activeCategory = 'all';
+let allMods = [];
+let selectedCategory = 'All';
 
-// Éléments DOM
 const modsGrid = document.getElementById('modsGrid');
 const searchInput = document.getElementById('searchInput');
-const clearSearchBtn = document.getElementById('clearSearch');
-const categoryPills = document.getElementById('categoryPills');
-const sortSelect = document.getElementById('sortSelect');
-const resultsCount = document.getElementById('resultsCount');
-const noResults = document.getElementById('noResults');
-const appLoader = document.getElementById('app-loader');
-const scrollTopBtn = document.getElementById('scrollTopBtn');
+const filterLoader = document.getElementById('filterLoader');
+const filterVersion = document.getElementById('filterVersion');
+const sortMods = document.getElementById('sortMods');
+const categoryButtons = document.querySelectorAll('.category-btn');
 
-// Initialisation
-document.addEventListener('DOMContentLoaded', async () => {
-    await fetchMods();
-    setupEventListeners();
-    hideLoader();
-});
+// Charger les mods au démarrage
+document.addEventListener('DOMContentLoaded', fetchMods);
 
-// Masquer le Loader
-function hideLoader() {
-    if (appLoader) {
-        appLoader.classList.add('fade-out');
-        setTimeout(() => appLoader.remove(), 500);
-    }
-}
-
-// Fetch Mods depuis Firestore
 async function fetchMods() {
     try {
-        const querySnapshot = await getDocs(collection(db, "mods"));
-        modsData = [];
-        querySnapshot.forEach((docSnap) => {
-            modsData.push({ id: docSnap.id, ...docSnap.data() });
-        });
+        const snap = await getDocs(collection(db, "mods"));
+        allMods = [];
+        snap.forEach(d => allMods.push({ id: d.id, ...d.data() }));
         renderMods();
-    } catch (error) {
-        console.error("Erreur de chargement des mods :", error);
-        resultsCount.innerText = "Erreur de connexion avec Firestore.";
+    } catch (err) {
+        console.error("Erreur de chargement :", err);
+        if (modsGrid) modsGrid.innerHTML = `<p class="error-msg">Impossible de charger les mods.</p>`;
     }
 }
 
-// Rendu Filtre & Recherche Instantanée
-function renderMods() {
-    const searchTerm = searchInput.value.toLowerCase().trim();
-    const selectedSort = sortSelect.value;
+// Filtrage et Tri
+function getFilteredMods() {
+    const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const loader = filterLoader ? filterLoader.value : 'all';
+    const version = filterVersion ? filterVersion.value : 'all';
+    const sort = sortMods ? sortMods.value : 'downloads';
 
-    let filtered = modsData.filter(mod => {
-        const matchesCategory = (activeCategory === 'all') || (mod.category === activeCategory);
+    return allMods.filter(mod => {
+        const matchesCategory = selectedCategory === 'All' || mod.category === selectedCategory;
+        const matchesSearch = !search || 
+            mod.name.toLowerCase().includes(search) || 
+            mod.description.toLowerCase().includes(search) ||
+            (mod.tags && mod.tags.some(t => t.toLowerCase().includes(search)));
         
-        const matchesSearch = mod.name.toLowerCase().includes(searchTerm) ||
-                              mod.description.toLowerCase().includes(searchTerm) ||
-                              (mod.tags && mod.tags.some(tag => tag.toLowerCase().includes(searchTerm))) ||
-                              (mod.loader && mod.loader.toLowerCase().includes(searchTerm));
+        const matchesLoader = loader === 'all' || (mod.loader && mod.loader.toLowerCase().includes(loader.toLowerCase()));
+        const matchesVersion = version === 'all' || (mod.mcVersion && mod.mcVersion.includes(version));
 
-        return matchesCategory && matchesSearch;
-    });
-
-    // Tri
-    filtered.sort((a, b) => {
-        if (selectedSort === 'downloads') return (b.downloads || 0) - (a.downloads || 0);
-        if (selectedSort === 'name') return a.name.localeCompare(b.name);
-        return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0); // Recent
-    });
-
-    // Mise à jour de l'affichage UI
-    resultsCount.innerText = `${filtered.length} mod(s) trouvé(s)`;
-    
-    if (filtered.length === 0) {
-        modsGrid.innerHTML = '';
-        noResults.classList.remove('hidden');
-    } else {
-        noResults.classList.add('hidden');
-        modsGrid.innerHTML = filtered.map(mod => createModCardHTML(mod)).join('');
-    }
-
-    // Binder l'incrémentation des téléchargements
-    document.querySelectorAll('.btn-download').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const modId = e.currentTarget.dataset.id;
-            trackDownload(modId);
-        });
+        return matchesCategory && matchesSearch && matchesLoader && matchesVersion;
+    }).sort((a, b) => {
+        if (sort === 'downloads') return (b.downloads || 0) - (a.downloads || 0);
+        if (sort === 'recent') return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
+        if (sort === 'name') return a.name.localeCompare(b.name);
+        return 0;
     });
 }
 
-// Génération carte HTML d'un mod
+// Génération de la carte HTML
 function createModCardHTML(mod) {
     const formattedDate = mod.updatedAt ? new Date(mod.updatedAt).toLocaleDateString('fr-FR') : 'Inconnue';
     const fallbackImg = 'https://via.placeholder.com/400x200/1A1A1A/D32F2F?text=No+Image';
 
-    // Si pas de lien de téléchargement spécifique, on utilise le site officiel
-    const targetDownloadUrl = mod.downloadUrl || mod.officialSite || '#';
-    const hasOfficialSite = Boolean(mod.officialSite);
+    const hasModrinth = Boolean(mod.modrinthUrl);
+    const hasCurseforge = Boolean(mod.curseforgeUrl);
 
     return `
         <article class="mod-card">
@@ -118,13 +81,15 @@ function createModCardHTML(mod) {
                     <span><i class="fa-solid fa-clock"></i> ${formattedDate}</span>
                 </div>
 
-                <div class="mod-actions">
-                    <a href="${targetDownloadUrl}" target="_blank" class="btn btn-primary btn-download" data-id="${mod.id}">
-                        <i class="fa-solid fa-download"></i> Télécharger
-                    </a>
-                    ${hasOfficialSite ? `
-                    <a href="${mod.officialSite}" target="_blank" class="btn btn-secondary">
-                        <i class="fa-solid fa-globe"></i> Site
+                <div class="mod-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    ${hasModrinth ? `
+                    <a href="${mod.modrinthUrl}" target="_blank" class="btn btn-primary btn-download" data-id="${mod.id}">
+                        <i class="fa-solid fa-download"></i> Modrinth
+                    </a>` : ''}
+                    
+                    ${hasCurseforge ? `
+                    <a href="${mod.curseforgeUrl}" target="_blank" class="btn btn-secondary btn-download" data-id="${mod.id}">
+                        <i class="fa-solid fa-download"></i> CurseForge
                     </a>` : ''}
                 </div>
             </div>
@@ -132,51 +97,51 @@ function createModCardHTML(mod) {
     `;
 }
 
-// Incrément de téléchargement
-async function trackDownload(modId) {
-    try {
-        const modRef = doc(db, "mods", modId);
-        await updateDoc(modRef, { downloads: increment(1) });
-    } catch (err) {
-        console.error("Erreur mise à jour téléchargements:", err);
+// Rendu dans le DOM
+function renderMods() {
+    if (!modsGrid) return;
+    const filtered = getFilteredMods();
+    
+    if (filtered.length === 0) {
+        modsGrid.innerHTML = `<p class="no-results">Aucun mod trouvé avec ces critères.</p>`;
+        return;
     }
+
+    modsGrid.innerHTML = filtered.map(createModCardHTML).join('');
+    attachDownloadListeners();
 }
 
-// Event Listeners
-function setupEventListeners() {
-    // Recherche instantanée
-    searchInput.addEventListener('input', () => {
-        clearSearchBtn.classList.toggle('hidden', searchInput.value === '');
+// Compteur de clics/téléchargements
+function attachDownloadListeners() {
+    document.querySelectorAll('.btn-download').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const id = e.currentTarget.dataset.id;
+            if (!id) return;
+
+            try {
+                const modRef = doc(db, "mods", id);
+                await updateDoc(modRef, { downloads: increment(1) });
+                
+                const targetMod = allMods.find(m => m.id === id);
+                if (targetMod) targetMod.downloads = (targetMod.downloads || 0) + 1;
+            } catch (err) {
+                console.error("Erreur d'incrémentation :", err);
+            }
+        });
+    });
+}
+
+// Événements Filtres
+categoryButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        categoryButtons.forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        selectedCategory = e.target.dataset.category;
         renderMods();
     });
+});
 
-    clearSearchBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        clearSearchBtn.classList.add('hidden');
-        renderMods();
-    });
-
-    // Filtres Catégories
-    categoryPills.addEventListener('click', (e) => {
-        if (e.target.classList.contains('pill')) {
-            document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
-            e.target.classList.add('active');
-            activeCategory = e.target.dataset.category;
-            renderMods();
-        }
-    });
-
-    // Tri
-    sortSelect.addEventListener('change', renderMods);
-
-    // Menu Mobile
-    const menuToggle = document.getElementById('menuToggle');
-    const navMenu = document.getElementById('navMenu');
-    menuToggle.addEventListener('click', () => navMenu.classList.toggle('show'));
-
-    // Scroll Top
-    window.addEventListener('scroll', () => {
-        scrollTopBtn.style.display = window.scrollY > 300 ? 'flex' : 'none';
-    });
-    scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-                   }
+if (searchInput) searchInput.addEventListener('input', renderMods);
+if (filterLoader) filterLoader.addEventListener('change', renderMods);
+if (filterVersion) filterVersion.addEventListener('change', renderMods);
+if (sortMods) sortMods.addEventListener('change', renderMods);
