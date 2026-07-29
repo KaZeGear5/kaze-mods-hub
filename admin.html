@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration - KaZe Mods Hub</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Overlay Connexion -->
+    <div id="authOverlay" class="auth-overlay">
+        <div class="auth-card">
+            <h2><i class="fa-solid fa-lock"></i> Connexion Admin</h2>
+            <form id="loginForm">
+                <div class="input-group">
+                    <label>Email Admin</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="input-group">
+                    <label>Mot de passe</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Se connecter</button>
+                <p id="authError" class="error-msg hidden"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard Admin -->
+    <div id="adminDashboard" class="admin-dashboard hidden">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3>KaZe Admin</h3>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="active"><a href="#"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="index.html" target="_blank"><i class="fa-solid fa-eye"></i> Voir le site</a></li>
+                <li><button id="logoutBtn" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</button></li>
+            </ul>
+        </aside>
+
+        <main class="admin-content">
+            <header class="content-header">
+                <h1>Tableau de bord</h1>
+            </header>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="fa-solid fa-cubes"></i>
+                    <div>
+                        <h3 id="statTotalMods">0</h3>
+                        <p>Total Mods</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <div>
+                        <h3>10</h3>
+                        <p>Catégories</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulaire Ajout / Édition Mod -->
+            <section class="admin-section">
+                <h2 id="formTitle">Ajouter un nouveau mod</h2>
+                <form id="modForm" class="mod-form">
+                    <input type="hidden" id="modId">
+                    
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label>Nom du Mod *</label>
+                            <input type="text" id="modName" required>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Catégorie *</label>
+                            <select id="modCategory" required>
+                                <option value="Performance">Performance</option>
+                                <option value="Shaders">Shaders</option>
+                                <option value="Utilitaires">Utilitaires</option>
+                                <option value="PvP">PvP</option>
+                                <option value="Décoration">Décoration</option>
+                                <option value="Monde">Monde</option>
+                                <option value="Mobs">Mobs</option>
+                                <option value="Structures">Structures</option>
+                                <option value="Mini-jeux">Mini-jeux</option>
+                                <option value="Autres">Autres</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Version Minecraft *</label>
+                            <input type="text" id="modMcVersion" placeholder="ex: 1.20.4" required>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Mod Loader *</label>
+                            <input type="text" id="modLoader" placeholder="ex: Fabric / Forge / NeoForge" required>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Auteur *</label>
+                            <input type="text" id="modAuthor" required>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Tags (séparés par des virgules)</label>
+                            <input type="text" id="modTags" placeholder="fps, optifine, client">
+                        </div>
+
+                        <div class="input-group">
+                            <label>Lien de Téléchargement *</label>
+                            <input type="url" id="modDownloadUrl" required>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Lien Site Officiel</label>
+                            <input type="url" id="modOfficialSite">
+                        </div>
+
+                        <div class="input-group full-width">
+                            <label>Image du Mod (Upload vers Storage ou URL)</label>
+                            <input type="file" id="modImageFile" accept="image/*">
+                            <input type="url" id="modImageUrl" placeholder="Ou coller une URL d'image directe">
+                        </div>
+
+                        <div class="input-group full-width">
+                            <label>Description *</label>
+                            <textarea id="modDescription" rows="4" required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="saveModBtn">Enregistrer le Mod</button>
+                        <button type="button" class="btn btn-secondary hidden" id="cancelEditBtn">Annuler Édition</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Table des Mods Existant -->
+            <section class="admin-section">
+                <h2>Mods Existants</h2>
+                <div class="table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Nom</th>
+                                <th>Catégorie</th>
+                                <th>Version</th>
+                                <th>Téléchargements</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminModsTableBody">
+                            <!-- Injections via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="admin.js"></script>
+</body>
+  </html>
