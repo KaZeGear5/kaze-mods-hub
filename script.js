@@ -11,14 +11,22 @@ const filterVersion = document.getElementById('filterVersion');
 const sortMods = document.getElementById('sortMods');
 const categoryButtons = document.querySelectorAll('.category-btn');
 
-// Charger les mods au démarrage
 document.addEventListener('DOMContentLoaded', fetchMods);
 
 async function fetchMods() {
     try {
         const snap = await getDocs(collection(db, "mods"));
         allMods = [];
-        snap.forEach(d => allMods.push({ id: d.id, ...d.data() }));
+        const now = new Date();
+
+        snap.forEach(d => {
+            const data = d.data();
+            // N'affiche que si pas de date OU si la date programmée est passée
+            if (!data.publishAt || new Date(data.publishAt) <= now) {
+                allMods.push({ id: d.id, ...data });
+            }
+        });
+
         renderMods();
     } catch (err) {
         console.error("Erreur de chargement :", err);
@@ -26,7 +34,6 @@ async function fetchMods() {
     }
 }
 
-// Filtrage et Tri
 function getFilteredMods() {
     const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
     const loader = filterLoader ? filterLoader.value : 'all';
@@ -52,7 +59,6 @@ function getFilteredMods() {
     });
 }
 
-// Génération de la carte HTML
 function createModCardHTML(mod) {
     const formattedDate = mod.updatedAt ? new Date(mod.updatedAt).toLocaleDateString('fr-FR') : 'Inconnue';
     const fallbackImg = 'https://via.placeholder.com/400x200/1A1A1A/D32F2F?text=No+Image';
@@ -97,13 +103,12 @@ function createModCardHTML(mod) {
     `;
 }
 
-// Rendu dans le DOM
 function renderMods() {
     if (!modsGrid) return;
     const filtered = getFilteredMods();
     
     if (filtered.length === 0) {
-        modsGrid.innerHTML = `<p class="no-results">Aucun mod trouvé avec ces critères.</p>`;
+        modsGrid.innerHTML = `<p class="no-results">Aucun mod disponible pour le moment.</p>`;
         return;
     }
 
@@ -111,7 +116,6 @@ function renderMods() {
     attachDownloadListeners();
 }
 
-// Compteur de clics/téléchargements
 function attachDownloadListeners() {
     document.querySelectorAll('.btn-download').forEach(btn => {
         btn.addEventListener('click', async (e) => {
@@ -131,7 +135,6 @@ function attachDownloadListeners() {
     });
 }
 
-// Événements Filtres
 categoryButtons.forEach(btn => {
     btn.addEventListener('click', (e) => {
         categoryButtons.forEach(b => b.classList.remove('active'));
