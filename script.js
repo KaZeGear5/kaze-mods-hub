@@ -93,6 +93,10 @@ function createModCardHTML(mod) {
     const formattedDate = mod.updatedAt ? new Date(mod.updatedAt).toLocaleDateString('fr-FR') : 'Inconnue';
     const fallbackImg = 'https://via.placeholder.com/400x200/1A1A1A/D32F2F?text=No+Image';
 
+    // Si pas de lien de téléchargement spécifique, on utilise le site officiel
+    const targetDownloadUrl = mod.downloadUrl || mod.officialSite || '#';
+    const hasOfficialSite = Boolean(mod.officialSite);
+
     return `
         <article class="mod-card">
             <div class="mod-image-wrapper">
@@ -115,12 +119,13 @@ function createModCardHTML(mod) {
                 </div>
 
                 <div class="mod-actions">
-                    <a href="${mod.downloadUrl}" target="_blank" class="btn btn-primary btn-download" data-id="${mod.id}">
+                    <a href="${targetDownloadUrl}" target="_blank" class="btn btn-primary btn-download" data-id="${mod.id}">
                         <i class="fa-solid fa-download"></i> Télécharger
                     </a>
-                    <a href="${mod.officialSite || '#'}" target="_blank" class="btn btn-secondary">
+                    ${hasOfficialSite ? `
+                    <a href="${mod.officialSite}" target="_blank" class="btn btn-secondary">
                         <i class="fa-solid fa-globe"></i> Site
-                    </a>
+                    </a>` : ''}
                 </div>
             </div>
         </article>
