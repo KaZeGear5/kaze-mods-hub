@@ -37,7 +37,6 @@ if (loginForm) {
         try {
             await signInWithEmailAndPassword(auth, email, password);
         } catch (err) {
-            console.error("Erreur de connexion :", err);
             if (authError) {
                 authError.innerText = "Erreur : " + err.message;
                 authError.classList.remove('hidden');
@@ -62,24 +61,23 @@ async function loadAdminMods() {
             adminModsTableBody.innerHTML = modsList.map(m => {
                 const isScheduled = m.publishAt && new Date(m.publishAt) > now;
                 const statusBadge = isScheduled 
-                    ? `<span style="color: #ff9800;">⏳ Programmé (${new Date(m.publishAt).toLocaleString('fr-FR')})</span>` 
-                    : `<span style="color: #4caf50;">✅ En ligne</span>`;
+                    ? `<span style="color: #f59e0b; font-size:0.8rem;">⏳ Programmé</span>` 
+                    : `<span style="color: #10b981; font-size:0.8rem;">✅ En ligne</span>`;
 
                 return `
                 <tr>
-                    <td><img src="${m.imageUrl || 'https://via.placeholder.com/45'}" class="thumb-img" alt="${m.name}"></td>
+                    <td><img src="${m.imageUrl || 'https://via.placeholder.com/40'}" class="thumb-img" alt="${m.name}"></td>
                     <td><strong>${m.name}</strong></td>
-                    <td>${m.category}</td>
                     <td>${statusBadge}</td>
                     <td>
-                        <button onclick="editMod('${m.id}')" class="btn btn-secondary" style="padding: 0.3rem 0.6rem;"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="deleteMod('${m.id}')" class="btn btn-primary" style="padding: 0.3rem 0.6rem;"><i class="fa-solid fa-trash"></i></button>
+                        <button onclick="editMod('${m.id}')" class="btn btn-secondary" style="padding:0.4rem 0.6rem;"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteMod('${m.id}')" class="btn btn-primary" style="padding:0.4rem 0.6rem;"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>
             `;}).join('');
         }
     } catch (err) {
-        console.error("Erreur chargement mods :", err);
+        console.error("Erreur :", err);
     }
 }
 
@@ -140,18 +138,18 @@ window.editMod = (id) => {
     document.getElementById('modImageUrl').value = m.imageUrl || '';
     document.getElementById('modDescription').value = m.description;
 
-    if (formTitle) formTitle.innerText = "Modifier le mod : " + m.name;
+    if (formTitle) formTitle.innerText = "Modifier : " + m.name;
     if (cancelEditBtn) cancelEditBtn.classList.remove('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 window.deleteMod = async (id) => {
-    if (confirm("Voulez-vous vraiment supprimer ce mod ?")) {
+    if (confirm("Supprimer ce mod ?")) {
         try {
             await deleteDoc(doc(db, "mods", id));
             loadAdminMods();
         } catch (err) {
-            alert("Erreur lors de la suppression : " + err.message);
+            alert("Erreur : " + err.message);
         }
     }
 };
@@ -161,6 +159,6 @@ if (cancelEditBtn) cancelEditBtn.addEventListener('click', resetForm);
 function resetForm() {
     if (modForm) modForm.reset();
     document.getElementById('modId').value = '';
-    if (formTitle) formTitle.innerText = "Ajouter un nouveau mod";
+    if (formTitle) formTitle.innerText = "Ajouter un mod";
     if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
-                        }
+                             }
