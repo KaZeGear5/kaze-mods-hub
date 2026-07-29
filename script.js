@@ -10,6 +10,7 @@ const filterLoader = document.getElementById('filterLoader');
 const filterVersion = document.getElementById('filterVersion');
 const sortMods = document.getElementById('sortMods');
 const categoryButtons = document.querySelectorAll('.category-btn');
+const loadingOverlay = document.getElementById('loadingOverlay');
 
 document.addEventListener('DOMContentLoaded', fetchMods);
 
@@ -21,7 +22,6 @@ async function fetchMods() {
 
         snap.forEach(d => {
             const data = d.data();
-            // N'affiche que si pas de date OU si la date programmée est passée
             if (!data.publishAt || new Date(data.publishAt) <= now) {
                 allMods.push({ id: d.id, ...data });
             }
@@ -31,6 +31,12 @@ async function fetchMods() {
     } catch (err) {
         console.error("Erreur de chargement :", err);
         if (modsGrid) modsGrid.innerHTML = `<p class="error-msg">Impossible de charger les mods.</p>`;
+    } finally {
+        // Enlève l'écran de chargement
+        if (loadingOverlay) {
+            loadingOverlay.classList.add('hidden');
+            loadingOverlay.style.display = 'none';
+        }
     }
 }
 
