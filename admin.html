@@ -6,148 +6,144 @@
     <title>Administration - KaZe Mods Hub</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0f0f11; color: #e0e0e0; font-family: sans-serif; margin: 0; padding: 0; }
+        .hidden { display: none !important; }
+        .auth-overlay { position: fixed; inset: 0; background: #0f0f11; display: flex; align-items: center; justify-content: center; z-index: 999; }
+        .auth-card { background: #18181b; border: 1px solid #27272a; padding: 2rem; border-radius: 12px; width: 90%; max-width: 360px; text-align: center; }
+        .auth-card input { width: 100%; padding: 0.8rem; margin: 0.5rem 0 1rem 0; background: #0f0f11; border: 1px solid #27272a; border-radius: 6px; color: #fff; box-sizing: border-box; }
+        .admin-dashboard { display: flex; flex-direction: column; padding: 1rem; max-width: 800px; margin: 0 auto; }
+        .admin-header-nav { display: flex; justify-content: space-between; align-items: center; background: #18181b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #27272a; }
+        .admin-section { background: #18181b; border: 1px solid #27272a; border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1rem; display: flex; flex-direction: column; text-align: left; }
+        .form-group label { font-size: 0.9rem; margin-bottom: 0.3rem; color: #a1a1aa; font-weight: bold; }
+        .form-group input, .form-group select, .form-group textarea { padding: 0.75rem; background: #0f0f11; border: 1px solid #27272a; color: #fff; border-radius: 6px; font-size: 0.95rem; }
+        .btn { padding: 0.75rem 1.2rem; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .btn-primary { background: #e11d48; color: white; }
+        .btn-secondary { background: #27272a; color: white; }
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; text-align: left; }
+        th, td { padding: 0.75rem; border-bottom: 1px solid #27272a; }
+        th { color: #a1a1aa; }
+        .thumb-img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; }
+    </style>
 </head>
-<body class="admin-body">
+<body>
 
-    <!-- Overlay de connexion -->
+    <!-- Overlay Connexion -->
     <div id="authOverlay" class="auth-overlay">
         <div class="auth-card">
-            <h2><i class="fa-solid fa-lock"></i> Espace Admin</h2>
+            <h2 style="color: #e11d48; margin-top:0;"><i class="fa-solid fa-lock"></i> Connexion Admin</h2>
             <form id="loginForm">
-                <div class="form-group">
-                    <label for="loginEmail">Email</label>
-                    <input type="email" id="loginEmail" required placeholder="admin@kaze.com">
-                </div>
-                <div class="form-group">
-                    <label for="loginPassword">Mot de passe</label>
-                    <input type="password" id="loginPassword" required placeholder="••••••••">
-                </div>
-                <div id="authError" class="auth-error hidden"></div>
+                <input type="email" id="loginEmail" required placeholder="Email admin">
+                <input type="password" id="loginPassword" required placeholder="Mot de passe">
+                <div id="authError" style="color: #ef4444; margin-bottom: 1rem; font-size: 0.85rem;" class="hidden"></div>
                 <button type="submit" class="btn btn-primary" style="width: 100%;">Se connecter</button>
             </form>
         </div>
     </div>
 
-    <!-- Dashboard Administrateur -->
+    <!-- Dashboard -->
     <div id="adminDashboard" class="admin-dashboard hidden">
-        <aside class="sidebar">
-            <div class="sidebar-brand">
-                <i class="fa-solid fa-cube logo-icon"></i> KaZe Admin
+        <div class="admin-header-nav">
+            <span style="font-weight: bold; color: #e11d48;"><i class="fa-solid fa-cube"></i> KaZe Admin</span>
+            <div>
+                <a href="index.html" target="_blank" class="btn btn-secondary" style="font-size: 0.8rem;"><i class="fa-solid fa-globe"></i> Voir le site</a>
+                <button id="logoutBtn" class="btn btn-secondary" style="font-size: 0.8rem; background: #3f3f46;"><i class="fa-solid fa-power-off"></i></button>
             </div>
-            <nav class="sidebar-nav">
-                <a href="#" class="active"><i class="fa-solid fa-gauge"></i> Dashboard</a>
-                <a href="index.html" target="_blank"><i class="fa-solid fa-globe"></i> Voir le site</a>
-                <button id="logoutBtn" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</button>
-            </nav>
-        </aside>
+        </div>
 
-        <main class="admin-content">
-            <header class="admin-header">
-                <div class="stat-card">
-                    <i class="fa-solid fa-cubes"></i>
-                    <div>
-                        <h3 id="statTotalMods">0</h3>
-                        <p>Total Mods</p>
-                    </div>
+        <section class="admin-section">
+            <h2 id="formTitle" style="margin-top:0;">Ajouter un mod</h2>
+            <form id="modForm">
+                <input type="hidden" id="modId">
+
+                <div class="form-group">
+                    <label>Nom du Mod *</label>
+                    <input type="text" id="modName" required>
                 </div>
-            </header>
 
-            <section class="admin-section">
-                <h2 id="formTitle">Ajouter un nouveau mod</h2>
-                <form id="modForm" class="mod-form">
-                    <input type="hidden" id="modId">
-
-                    <div class="form-group">
-                        <label for="modName">Nom du Mod *</label>
-                        <input type="text" id="modName" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="modCategory">Catégorie *</label>
-                        <select id="modCategory" required>
-                            <option value="Performance">Performance</option>
-                            <option value="Optimisation">Optimisation</option>
-                            <option value="Graphismes">Graphismes</option>
-                            <option value="Gameplay">Gameplay</option>
-                            <option value="Utilitaires">Utilitaires</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="modMcVersion">Version Minecraft *</label>
-                        <input type="text" id="modMcVersion" placeholder="ex: 1.20.4" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="modLoader">Mod Loader *</label>
-                        <input type="text" id="modLoader" placeholder="ex: Fabric / Forge / NeoForge" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="modAuthor">Auteur *</label>
-                        <input type="text" id="modAuthor" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="modTags">Tags (séparés par des virgules)</label>
-                        <input type="text" id="modTags" placeholder="fps, optifine, client">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="modPublishAt">📅 Date et Heure de publication (optionnel)</label>
-                        <input type="datetime-local" id="modPublishAt">
-                        <small style="color: #888;">Laissez vide pour publier immédiatement.</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="modModrinthUrl">Lien Modrinth (optionnel)</label>
-                        <input type="url" id="modModrinthUrl" placeholder="https://modrinth.com/mod/...">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="modCurseforgeUrl">Lien CurseForge (optionnel)</label>
-                        <input type="url" id="modCurseforgeUrl" placeholder="https://www.curseforge.com/minecraft/mc-mods/...">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="modImageUrl">URL de l'image *</label>
-                        <input type="url" id="modImageUrl" placeholder="https://example.com/image.png" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="modDescription">Description *</label>
-                        <textarea id="modDescription" rows="4" required></textarea>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Enregistrer le Mod</button>
-                        <button type="button" id="cancelEditBtn" class="btn btn-secondary hidden">Annuler</button>
-                    </div>
-                </form>
-            </section>
-
-            <section class="admin-section">
-                <h2>Liste des Mods</h2>
-                <div class="table-wrapper">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Image</th>
-                                <th>Nom</th>
-                                <th>Catégorie</th>
-                                <th>Statut</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminModsTableBody">
-                            <!-- Rempli en JS -->
-                        </tbody>
-                    </table>
+                <div class="form-group">
+                    <label>Catégorie *</label>
+                    <select id="modCategory" required>
+                        <option value="Performance">Performance</option>
+                        <option value="Optimisation">Optimisation</option>
+                        <option value="Graphismes">Graphismes</option>
+                        <option value="Gameplay">Gameplay</option>
+                        <option value="Utilitaires">Utilitaires</option>
+                    </select>
                 </div>
-            </section>
-        </main>
+
+                <div class="form-group">
+                    <label>Version Minecraft *</label>
+                    <input type="text" id="modMcVersion" placeholder="ex: 1.20.4" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Mod Loader *</label>
+                    <input type="text" id="modLoader" placeholder="ex: Fabric / Forge" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Auteur *</label>
+                    <input type="text" id="modAuthor" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Tags (séparés par des virgules)</label>
+                    <input type="text" id="modTags" placeholder="fps, client">
+                </div>
+
+                <div class="form-group">
+                    <label>📅 Date/Heure de publication (optionnel)</label>
+                    <input type="datetime-local" id="modPublishAt">
+                </div>
+
+                <div class="form-group">
+                    <label>Lien Modrinth (optionnel)</label>
+                    <input type="url" id="modModrinthUrl" placeholder="https://modrinth.com/mod/...">
+                </div>
+
+                <div class="form-group">
+                    <label>Lien CurseForge (optionnel)</label>
+                    <input type="url" id="modCurseforgeUrl" placeholder="https://www.curseforge.com/...">
+                </div>
+
+                <div class="form-group">
+                    <label>URL d'image *</label>
+                    <input type="url" id="modImageUrl" placeholder="https://..." required>
+                </div>
+
+                <div class="form-group">
+                    <label>Description *</label>
+                    <textarea id="modDescription" rows="3" required></textarea>
+                </div>
+
+                <div style="display:flex; gap:0.5rem;">
+                    <button type="submit" class="btn btn-primary">Enregistrer le Mod</button>
+                    <button type="button" id="cancelEditBtn" class="btn btn-secondary hidden">Annuler</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="admin-section">
+            <h2 style="margin-top:0;">Mods enregistrés (<span id="statTotalMods">0</span>)</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Nom</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminModsTableBody"></tbody>
+                </table>
+            </div>
+        </section>
     </div>
 
     <script type="module" src="admin.js"></script>
 </body>
-                        </html>
+                                </html>
