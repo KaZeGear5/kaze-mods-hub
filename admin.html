@@ -94,6 +94,12 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="modPublishAt">📅 Date et Heure de publication (optionnel)</label>
+                        <input type="datetime-local" id="modPublishAt">
+                        <small style="color: #888;">Laissez vide pour publier immédiatement.</small>
+                    </div>
+
+                    <div class="form-group">
                         <label for="modModrinthUrl">Lien Modrinth (optionnel)</label>
                         <input type="url" id="modModrinthUrl" placeholder="https://modrinth.com/mod/...">
                     </div>
@@ -129,8 +135,7 @@
                                 <th>Image</th>
                                 <th>Nom</th>
                                 <th>Catégorie</th>
-                                <th>Version</th>
-                                <th>Téléchargements</th>
+                                <th>Statut</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -145,4 +150,4 @@
 
     <script type="module" src="admin.js"></script>
 </body>
-</html>
+                        </html>
