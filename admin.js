@@ -2,7 +2,6 @@ import { db, auth } from './firebase.js';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Éléments DOM
 const authOverlay = document.getElementById('authOverlay');
 const adminDashboard = document.getElementById('adminDashboard');
 const loginForm = document.getElementById('loginForm');
@@ -16,7 +15,6 @@ const formTitle = document.getElementById('formTitle');
 
 let modsList = [];
 
-// Écouteur de statut de connexion
 onAuthStateChanged(auth, (user) => {
     if (user) {
         if (authOverlay) authOverlay.classList.add('hidden');
@@ -28,7 +26,6 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// Traitement de la connexion
 if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -49,10 +46,8 @@ if (loginForm) {
     });
 }
 
-// Déconnexion
 if (logoutBtn) logoutBtn.addEventListener('click', () => signOut(auth));
 
-// Charger la liste des mods dans le tableau d'admin
 async function loadAdminMods() {
     try {
         const snap = await getDocs(collection(db, "mods"));
@@ -63,26 +58,31 @@ async function loadAdminMods() {
         if (statTotal) statTotal.innerText = modsList.length;
         
         if (adminModsTableBody) {
-            adminModsTableBody.innerHTML = modsList.map(m => `
+            const now = new Date();
+            adminModsTableBody.innerHTML = modsList.map(m => {
+                const isScheduled = m.publishAt && new Date(m.publishAt) > now;
+                const statusBadge = isScheduled 
+                    ? `<span style="color: #ff9800;">⏳ Programmé (${new Date(m.publishAt).toLocaleString('fr-FR')})</span>` 
+                    : `<span style="color: #4caf50;">✅ En ligne</span>`;
+
+                return `
                 <tr>
                     <td><img src="${m.imageUrl || 'https://via.placeholder.com/45'}" class="thumb-img" alt="${m.name}"></td>
                     <td><strong>${m.name}</strong></td>
                     <td>${m.category}</td>
-                    <td>${m.mcVersion}</td>
-                    <td>${m.downloads || 0}</td>
+                    <td>${statusBadge}</td>
                     <td>
                         <button onclick="editMod('${m.id}')" class="btn btn-secondary" style="padding: 0.3rem 0.6rem;"><i class="fa-solid fa-pen"></i></button>
                         <button onclick="deleteMod('${m.id}')" class="btn btn-primary" style="padding: 0.3rem 0.6rem;"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>
-            `).join('');
+            `;}).join('');
         }
     } catch (err) {
         console.error("Erreur chargement mods :", err);
     }
 }
 
-// Soumission du formulaire (Création / Modification)
 if (modForm) {
     modForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -94,6 +94,7 @@ if (modForm) {
         const loader = document.getElementById('modLoader').value;
         const author = document.getElementById('modAuthor').value;
         const tags = document.getElementById('modTags').value.split(',').map(t => t.trim());
+        const publishAt = document.getElementById('modPublishAt').value;
         const modrinthUrl = document.getElementById('modModrinthUrl').value;
         const curseforgeUrl = document.getElementById('modCurseforgeUrl').value;
         const description = document.getElementById('modDescription').value;
@@ -101,6 +102,7 @@ if (modForm) {
 
         const modData = {
             name, category, mcVersion, loader, author, tags,
+            publishAt: publishAt || null,
             modrinthUrl, curseforgeUrl, description, imageUrl,
             updatedAt: new Date().toISOString()
         };
@@ -121,7 +123,6 @@ if (modForm) {
     });
 }
 
-// Édition d'un mod
 window.editMod = (id) => {
     const m = modsList.find(x => x.id === id);
     if (!m) return;
@@ -133,6 +134,7 @@ window.editMod = (id) => {
     document.getElementById('modLoader').value = m.loader;
     document.getElementById('modAuthor').value = m.author;
     document.getElementById('modTags').value = m.tags ? m.tags.join(', ') : '';
+    document.getElementById('modPublishAt').value = m.publishAt || '';
     document.getElementById('modModrinthUrl').value = m.modrinthUrl || '';
     document.getElementById('modCurseforgeUrl').value = m.curseforgeUrl || '';
     document.getElementById('modImageUrl').value = m.imageUrl || '';
@@ -143,7 +145,6 @@ window.editMod = (id) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
-// Suppression d'un mod
 window.deleteMod = async (id) => {
     if (confirm("Voulez-vous vraiment supprimer ce mod ?")) {
         try {
@@ -162,4 +163,4 @@ function resetForm() {
     document.getElementById('modId').value = '';
     if (formTitle) formTitle.innerText = "Ajouter un nouveau mod";
     if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
-                                                    }
+                        }
