@@ -1,81 +1,72 @@
-import { db } from './firebase.js';
-import { collection, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+// Données de secours / Test si l'API ou le stockage local est vide
+const initialMods = [
+    {
+        id: "sodium",
+        name: "Sodium",
+        description: "Un mod d'optimisation du moteur de rendu très performant pour Minecraft.",
+        category: "Optimisation",
+        loader: "fabric",
+        versions: ["1.20", "1.19"],
+        author: "jellysquid3",
+        date: "2026-07-29",
+        downloads: 1250,
+        imageUrl: "https://cdn.modrinth.com/data/AANobbA1/images/873f271295982e5ee965a329d2f2d93e2a567d16.png",
+        modrinthUrl: "https://modrinth.com/mod/sodium",
+        curseforgeUrl: "https://curseforge.com/minecraft/mc-mods/sodium"
+    }
+];
 
-let allMods = [];
-let selectedCategory = 'All';
-
-const modsGrid = document.getElementById('modsGrid');
-const searchInput = document.getElementById('searchInput');
-const filterLoader = document.getElementById('filterLoader');
-const filterVersion = document.getElementById('filterVersion');
-const sortMods = document.getElementById('sortMods');
-const categoryButtons = document.querySelectorAll('.category-btn');
-const loadingOverlay = document.getElementById('loadingOverlay');
-
-document.addEventListener('DOMContentLoaded', fetchMods);
-
-async function fetchMods() {
-    try {
-        const snap = await getDocs(collection(db, "mods"));
-        allMods = [];
-        const now = new Date();
-
-        snap.forEach(d => {
-            const data = d.data();
-            if (!data.publishAt || new Date(data.publishAt) <= now) {
-                allMods.push({ id: d.id, ...data });
-            }
-        });
-
-        renderMods();
-    } catch (err) {
-        console.error("Erreur de chargement :", err);
-        if (modsGrid) modsGrid.innerHTML = `<p class="error-msg">Impossible de charger les mods.</p>`;
-    } finally {
-        // Enlève l'écran de chargement
-        if (loadingOverlay) {
-            loadingOverlay.classList.add('hidden');
-            loadingOverlay.style.display = 'none';
+// Chargement des mods depuis le localStorage ou les mods par défaut
+function getMods() {
+    const saved = localStorage.getItem('kaze_mods');
+    if (saved) {
+        try {
+            return JSON.parse(saved);
+        } catch(e) {
+            console.error("Erreur lecture localStorage", e);
         }
     }
+    return initialMods;
 }
 
-function getFilteredMods() {
-    const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
-    const loader = filterLoader ? filterLoader.value : 'all';
-    const version = filterVersion ? filterVersion.value : 'all';
-    const sort = sortMods ? sortMods.value : 'downloads';
+// Fonction d'affichage des cartes de mods
+function renderMods() {
+    const grid = document.getElementById('modsGrid');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    
+    if (loadingOverlay) {
+        loadingOverlay.classList.add('hidden');
+    }
 
-    return allMods.filter(mod => {
-        const matchesCategory = selectedCategory === 'All' || mod.category === selectedCategory;
-        const matchesSearch = !search || 
-            mod.name.toLowerCase().includes(search) || 
-            mod.description.toLowerCase().includes(search) ||
-            (mod.tags && mod.tags.some(t => t.toLowerCase().includes(search)));
+    if (!grid) return;
+
+    const mods = getMods();
+    const searchVal = (document.getElementById('searchInput')?.value || '').toLowerCase();
+    const loaderVal = document.getElementById('filterLoader')?.value || 'all';
+    const versionVal = document.getElementById('filterVersion')?.value || 'all';
+    const activeCategoryBtn = document.querySelector('.category-btn.active');
+    const categoryVal = activeCategoryBtn ? activeCategoryBtn.dataset.category : 'All';
+
+    // Filtrage
+    const filtered = mods.filter(mod => {
+        const matchesSearch = mod.name.toLowerCase().includes(searchVal) || mod.description.toLowerCase().includes(searchVal);
+        const matchesLoader = loaderVal === 'all' || (mod.loader && mod.loader.toLowerCase() === loaderVal.toLowerCase());
+        const matchesVersion = versionVal === 'all' || (mod.versions && mod.versions.includes(versionVal));
+        const matchesCategory = categoryVal === 'All' || categoryVal === 'Toutes' || mod.category === categoryVal;
         
-        const matchesLoader = loader === 'all' || (mod.loader && mod.loader.toLowerCase().includes(loader.toLowerCase()));
-        const matchesVersion = version === 'all' || (mod.mcVersion && mod.mcVersion.includes(version));
-
-        return matchesCategory && matchesSearch && matchesLoader && matchesVersion;
-    }).sort((a, b) => {
-        if (sort === 'downloads') return (b.downloads || 0) - (a.downloads || 0);
-        if (sort === 'recent') return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
-        if (sort === 'name') return a.name.localeCompare(b.name);
-        return 0;
+        return matchesSearch && matchesLoader && matchesVersion && matchesCategory;
     });
-}
 
-function createModCardHTML(mod) {
-    const formattedDate = mod.updatedAt ? new Date(mod.updatedAt).toLocaleDateString('fr-FR') : 'Inconnue';
-    const fallbackImg = 'https://via.placeholder.com/400x200/1A1A1A/D32F2F?text=No+Image';
+    if (filtered.length === 0) {
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 2rem;">Aucun mod trouvé.</div>`;
+        return;
+    }
 
-    const hasModrinth = Boolean(mod.modrinthUrl);
-    const hasCurseforge = Boolean(mod.curseforgeUrl);
-
-    return `
+    // Génération du HTML des cartes
+    grid.innerHTML = filtered.map(mod => `
         <article class="mod-card">
             <div class="mod-image-wrapper">
-                <img src="${mod.imageUrl || fallbackImg}" alt="${mod.name}" loading="lazy">
+                <img src="${mod.imageUrl || 'https://via.placeholder.com/400x200?text=No+Image'}" alt="${mod.name}">
                 <span class="mod-category-badge">${mod.category}</span>
             </div>
             <div class="mod-body">
@@ -83,74 +74,35 @@ function createModCardHTML(mod) {
                 <p class="mod-description">${mod.description}</p>
                 
                 <div class="mod-meta">
-                    <span class="meta-tag loader">${mod.loader || 'Fabric/Forge'}</span>
-                    <span class="meta-tag">MC ${mod.mcVersion || '1.20.x'}</span>
-                    <span class="meta-tag">Par ${mod.author || 'Anonyme'}</span>
+                    <span class="meta-tag">⚡ ${mod.loader || 'Fabric'}</span>
+                    <span class="meta-tag">🎮 MC ${Array.isArray(mod.versions) ? mod.versions.join(', ') : mod.versions}</span>
+                    <span class="meta-tag">👤 ${mod.author}</span>
                 </div>
 
-                <div class="mod-stats">
-                    <span><i class="fa-solid fa-download"></i> ${(mod.downloads || 0).toLocaleString()}</span>
-                    <span><i class="fa-solid fa-clock"></i> ${formattedDate}</span>
-                </div>
-
-                <div class="mod-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                    ${hasModrinth ? `
-                    <a href="${mod.modrinthUrl}" target="_blank" class="btn btn-primary btn-download" data-id="${mod.id}">
-                        <i class="fa-solid fa-download"></i> Modrinth
-                    </a>` : ''}
-                    
-                    ${hasCurseforge ? `
-                    <a href="${mod.curseforgeUrl}" target="_blank" class="btn btn-secondary btn-download" data-id="${mod.id}">
-                        <i class="fa-solid fa-download"></i> CurseForge
-                    </a>` : ''}
+                <div style="display: flex; gap: 0.5rem; margin-top: auto;">
+                    ${mod.modrinthUrl ? `<a href="${mod.modrinthUrl}" target="_blank" class="btn btn-primary"> Modrinth</a>` : ''}
+                    ${mod.curseforgeUrl ? `<a href="${mod.curseforgeUrl}" target="_blank" class="btn btn-secondary"> CurseForge</a>` : ''}
                 </div>
             </div>
         </article>
-    `;
+    `).join('');
 }
 
-function renderMods() {
-    if (!modsGrid) return;
-    const filtered = getFilteredMods();
-    
-    if (filtered.length === 0) {
-        modsGrid.innerHTML = `<p class="no-results">Aucun mod disponible pour le moment.</p>`;
-        return;
-    }
+// Initialisation au chargement de la page
+document.addEventListener('DOMContentLoaded', () => {
+    renderMods();
 
-    modsGrid.innerHTML = filtered.map(createModCardHTML).join('');
-    attachDownloadListeners();
-}
+    // Ecouteurs d'événements pour la recherche et les filtres
+    document.getElementById('searchInput')?.addEventListener('input', renderMods);
+    document.getElementById('filterLoader')?.addEventListener('change', renderMods);
+    document.getElementById('filterVersion')?.addEventListener('change', renderMods);
 
-function attachDownloadListeners() {
-    document.querySelectorAll('.btn-download').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            const id = e.currentTarget.dataset.id;
-            if (!id) return;
-
-            try {
-                const modRef = doc(db, "mods", id);
-                await updateDoc(modRef, { downloads: increment(1) });
-                
-                const targetMod = allMods.find(m => m.id === id);
-                if (targetMod) targetMod.downloads = (targetMod.downloads || 0) + 1;
-            } catch (err) {
-                console.error("Erreur d'incrémentation :", err);
-            }
+    // Ecouteurs pour les boutons de catégorie
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            renderMods();
         });
     });
-}
-
-categoryButtons.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        categoryButtons.forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        selectedCategory = e.target.dataset.category;
-        renderMods();
-    });
 });
-
-if (searchInput) searchInput.addEventListener('input', renderMods);
-if (filterLoader) filterLoader.addEventListener('change', renderMods);
-if (filterVersion) filterVersion.addEventListener('change', renderMods);
-if (sortMods) sortMods.addEventListener('change', renderMods);
