@@ -1,14 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-    --bg-dark: #0d0e12;
+    --bg-main: #0d0e12;
     --bg-card: #16181e;
-    --bg-element: #1f222a;
+    --bg-input: #1f222a;
     --accent: #e11d48;
     --accent-hover: #f43f5e;
-    --text-main: #f3f4f6;
+    --text-primary: #f3f4f6;
     --text-muted: #9ca3af;
-    --border: #27272a;
+    --border-color: #27272a;
     --radius: 12px;
 }
 
@@ -20,32 +20,52 @@
 }
 
 body {
-    background-color: var(--bg-dark);
-    color: var(--text-main);
+    background-color: var(--bg-main);
+    color: var(--text-primary);
     line-height: 1.5;
     padding-bottom: 3rem;
 }
 
-/* NAVBAR */
-nav {
-    background: var(--bg-card);
-    border-bottom: 1px solid var(--border);
-    padding: 1rem;
+.hidden { display: none !important; }
+
+/* LOADER */
+#loadingOverlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-main);
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.loader-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--border-color);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* NAVBAR */
+nav {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
     gap: 0.8rem;
 }
 
-@media (min-width: 600px) {
-    nav {
-        flex-direction: row;
-        justify-content: space-between;
-    }
-}
-
 nav a {
-    text-decoration: none !important;
+    text-decoration: none;
     font-weight: 600;
     font-size: 0.85rem;
     padding: 0.5rem 0.9rem;
@@ -56,48 +76,63 @@ nav a {
 }
 
 /* HEADER HERO */
+header {
+    text-align: center;
+    padding: 2rem 1rem 1rem 1rem;
+}
+
 header h1 {
     font-size: 1.8rem;
     font-weight: 800;
     color: #fff;
-    text-align: center;
-    margin-top: 1.5rem;
-    padding: 0 1rem;
 }
 
 header p {
     color: var(--text-muted);
-    text-align: center;
     font-size: 0.9rem;
     margin-top: 0.5rem;
-    padding: 0 1.5rem;
 }
 
-/* BARRE DE RECHERCHE ET FILTRES */
+main {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* SEARCH & FILTERS */
 .controls-section {
     background: var(--bg-card);
     padding: 1rem;
     border-radius: var(--radius);
-    border: 1px solid var(--border);
-    margin: 1.5rem 1rem;
+    border: 1px solid var(--border-color);
+    margin: 1.5rem 0;
 }
 
-input[type="text"] {
+.search-box input {
     width: 100%;
     padding: 0.75rem 1rem;
-    background: var(--bg-element);
-    border: 1px solid var(--border);
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     color: #fff;
     font-size: 0.9rem;
     outline: none;
 }
 
-select {
-    background: var(--bg-element);
-    color: #fff;
-    border: 1px solid var(--border);
+.filter-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.filter-group select {
+    flex: 1;
+    min-width: 140px;
     padding: 0.65rem;
+    background: var(--bg-input);
+    color: #fff;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 0.85rem;
     outline: none;
@@ -108,22 +143,21 @@ h2 {
     font-size: 1.2rem;
     color: #fff;
     text-align: center;
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem;
 }
 
-.categories-list, div:has(> .category-btn) {
+.categories-nav {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0 1rem;
     margin-bottom: 2rem;
 }
 
-button, .category-btn {
+.category-btn {
     background: var(--bg-card);
     color: var(--text-muted);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-color);
     padding: 0.5rem 1rem;
     border-radius: 20px;
     font-size: 0.85rem;
@@ -131,66 +165,113 @@ button, .category-btn {
     cursor: pointer;
 }
 
-button.active, .category-btn.active {
-    background: var(--accent) !important;
-    color: #fff !important;
-    border-color: var(--accent) !important;
+.category-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
 }
 
-/* --- STRUCTURE DE LA CARTE MOD (CORRECTION BANNIERE IMAGE) --- */
+/* GRILLE & CARTE MOD (IMAGE BANNIÈRE EN HAUT) */
 .mods-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1.5rem;
-    padding: 0 1rem;
 }
 
-/* Force la carte à empiler l'image EN HAUT et le texte EN BAS */
-.mod-card, div[style*="border"] {
-    background: var(--bg-card) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: var(--radius) !important;
+.mod-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
     overflow: hidden;
-    display: flex !important;
-    flex-direction: column !important; /* Image en haut, texte en bas */
-    width: 100% !important;
-    margin: 0 auto 1.5rem auto;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Image du Mod (Sodium, etc.) prend toute la largeur */
-.mod-card img, div[style*="border"] img, div[style*="background-color"] {
-    width: 100% !important;
-    height: 160px !important;
-    object-fit: cover !important;
-    display: block !important;
-    float: none !important;
+.mod-image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 160px;
+    background: #000;
 }
 
-/* Badges de liens (Modrinth / Curseforge) */
-a[href*="modrinth"], a[href*="curseforge"] {
-    border-radius: 8px !important;
-    font-weight: 600 !important;
-    text-decoration: none !important;
-    padding: 0.6rem 1rem !important;
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
+.mod-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.mod-category-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: var(--accent);
+}
+
+.mod-body {
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
     flex: 1;
 }
 
-a[href*="modrinth"] { background: var(--accent) !important; color: white !important; }
-a[href*="curseforge"] { background: var(--bg-element) !important; color: white !important; border: 1px solid var(--border); }
+.mod-title {
+    font-size: 1.2rem;
+    color: #fff;
+    margin-bottom: 0.4rem;
+}
+
+.mod-description {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    flex: 1;
+}
+
+.mod-meta {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.meta-tag {
+    background: var(--bg-input);
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+}
+
+.btn {
+    padding: 0.65rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+.btn-primary { background: var(--accent); color: white; }
+.btn-secondary { background: var(--bg-input); color: white; border: 1px solid var(--border-color); }
 
 /* FOOTER */
 footer {
     margin-top: 3rem;
     padding: 2rem 1rem;
     text-align: center;
-    border-top: 1px solid var(--border);
+    border-top: 1px solid var(--border-color);
     background: var(--bg-card);
     font-size: 0.85rem;
     color: var(--text-muted);
 }
 
-footer a { color: var(--accent) !important; text-decoration: none; }
+footer a { color: var(--accent); text-decoration: none; }
