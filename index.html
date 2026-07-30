@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KaZe Mods Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- BARRE DE DEBUG ROUGE EN CAS D'ERREUR -->
+    <script>
+        window.addEventListener('error', function(e) {
+            var box = document.getElementById('debugConsole');
+            if(box) {
+                box.style.display = 'block';
+                box.innerHTML += '<div><strong>[ERREUR JS]</strong> ' + e.message + ' (Ligne: ' + e.lineno + ')</div>';
+            }
+        });
+    </script>
+
     <style>
         :root {
             --bg-main: #0d0e12;
@@ -30,6 +42,24 @@
             color: var(--text-primary);
             line-height: 1.5;
             padding-bottom: 3rem;
+        }
+
+        /* CONSOLE DE DEBUG VISUELLE */
+        #debugConsole {
+            display: none;
+            background: #991b1b;
+            color: #fff;
+            padding: 10px;
+            font-size: 12px;
+            font-family: monospace;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 99999;
+            border-bottom: 2px solid #f87171;
+            max-height: 150px;
+            overflow-y: auto;
         }
 
         .hidden { display: none !important; }
@@ -256,6 +286,9 @@
 </head>
 <body>
 
+    <!-- BOX DE DEBUG VISUELLE -->
+    <div id="debugConsole"></div>
+
     <!-- Ecran de chargement -->
     <div id="loadingOverlay">
         <div class="loader-spinner"></div>
@@ -307,7 +340,7 @@
 
         <!-- Grille des Mods -->
         <div id="modsGrid" class="mods-grid">
-            <!-- Les mods sont injectés ici via script.js -->
+            <!-- Injecté par script.js -->
         </div>
     </main>
 
