@@ -3,147 +3,314 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KaZe Mods Hub - La référence des mods Minecraft</title>
-    
-    <!-- SEO & Social Media Meta Tags -->
-    <meta name="description" content="Découvrez, filtrez et téléchargez les meilleurs mods Minecraft pour toutes les versions : Performance, Shaders, PvP, Utilitaires et plus encore.">
-    <meta name="keywords" content="Minecraft, Mods, Sodium, Shaders, Fabric, Forge, Modpacks, KaZe Mods Hub">
-    <meta name="author" content="KaZe Mods Hub">
-    
-    <meta property="og:title" content="KaZe Mods Hub - Hub de Mods Minecraft">
-    <meta property="og:description" content="Téléchargez les meilleurs mods Minecraft optimisés.">
-    <meta property="og:image" content="https://kaze-mods-hub.com/og-image.jpg">
-    <meta property="og:type" content="website">
-    
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="KaZe Mods Hub">
-    <meta name="twitter:description" content="Découvrez et téléchargez les meilleurs mods Minecraft.">
-    
-    <!-- PWA -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#D32F2F">
-    
-    <!-- Styling & Icons -->
-    <link rel="stylesheet" href="style.css">
+    <title>KaZe Mods Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0d0e12;
+            --bg-card: #16181e;
+            --bg-input: #1f222a;
+            --accent: #e11d48;
+            --accent-hover: #f43f5e;
+            --text-primary: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border-color: #27272a;
+            --radius: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.5;
+            padding-bottom: 3rem;
+        }
+
+        .hidden { display: none !important; }
+
+        /* OVERLAY CHARGEMENT */
+        #loadingOverlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.3s ease;
+        }
+
+        .loader-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* HEADER */
+        header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem 1rem;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            color: var(--accent);
+            margin-bottom: 0.3rem;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* CONTAINER */
+        main {
+            max-width: 1100px;
+            margin: 1.5rem auto;
+            padding: 0 1rem;
+        }
+
+        /* CONTROLES ET RECHERCHE */
+        .controls-section {
+            background: var(--bg-card);
+            padding: 1rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .filter-group select {
+            flex: 1;
+            padding: 0.65rem 0.8rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+        }
+
+        /* CATEGORIES */
+        .categories-nav {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .category-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            color: var(--text-muted);
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 0.85rem;
+        }
+
+        .category-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        /* GRILLE DE MODS */
+        .mods-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1.2rem;
+        }
+
+        /* CARTE MOD */
+        .mod-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mod-image-wrapper {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            background: #000;
+        }
+
+        .mod-image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .mod-category-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .mod-body {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .mod-title {
+            font-size: 1.1rem;
+            margin-bottom: 0.4rem;
+            color: #fff;
+        }
+
+        .mod-description {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 0.8rem;
+            flex: 1;
+        }
+
+        .mod-meta {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.8rem;
+        }
+
+        .meta-tag {
+            background: var(--bg-input);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .btn {
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            flex: 1;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-secondary { background: var(--bg-input); color: white; border: 1px solid var(--border-color); }
+    </style>
 </head>
 <body>
 
-    <!-- Ecran de Chargement -->
-    <div id="app-loader" class="loader-overlay">
-        <div class="cube-wrapper">
-            <div class="mc-cube"></div>
-            <p>Chargement du Hub...</p>
-        </div>
+    <!-- Ecran de chargement -->
+    <div id="loadingOverlay">
+        <div class="loader-spinner"></div>
+        <p>Chargement du Hub...</p>
     </div>
 
-    <!-- Barre de Navigation -->
-    <header class="navbar">
-        <div class="nav-container">
-            <a href="index.html" class="brand-logo">
-                <i class="fa-solid fa-cube logo-icon"></i>
-                <span>KaZe <strong>Mods Hub</strong></span>
-            </a>
-            
-            <button class="menu-toggle" id="menuToggle" aria-label="Menu">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-
-            <nav class="nav-menu" id="navMenu">
-                <a href="index.html" class="active"><i class="fa-solid fa-house"></i> Accueil</a>
-                <a href="#mods-section"><i class="fa-solid fa-cubes"></i> Mods</a>
-                <a href="#categories-section"><i class="fa-solid fa-layer-group"></i> Catégories</a>
-                <a href="https://discord.gg" target="_blank" class="btn-social discord"><i class="fa-brands fa-discord"></i> Discord</a>
-                <a href="https://youtube.com" target="_blank" class="btn-social youtube"><i class="fa-brands fa-youtube"></i> YouTube</a>
-                <a href="admin.html" class="admin-link" title="Administration"><i class="fa-solid fa-user-gear"></i></a>
-            </nav>
-        </div>
+    <!-- En-tête -->
+    <header>
+        <h1><i class="fa-solid fa-cube"></i> KaZe Mods Hub</h1>
+        <p>Découvrez et téléchargez les meilleurs mods Minecraft</p>
     </header>
 
-    <!-- Hero Section & Recherche -->
-    <section class="hero-section">
-        <div class="hero-content">
-            <h1>Boostez votre expérience <span>Minecraft</span></h1>
-            <p>Trouvez les meilleurs mods pour optimiser vos performances, améliorer le rendu visuel et enrichir votre gameplay.</p>
-            
+    <!-- Contenu Principal -->
+    <main>
+        <!-- Filtres et Recherche -->
+        <section class="controls-section">
             <div class="search-box">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" id="searchInput" placeholder="Rechercher un mod, exemple: Sodium..." autocomplete="off">
-                <button id="clearSearch" class="clear-btn hidden"><i class="fa-solid fa-xmark"></i></button>
+                <input type="text" id="searchInput" placeholder="Rechercher un mod...">
             </div>
-        </div>
-    </section>
-
-    <!-- Section Catégories -->
-    <section class="categories-section" id="categories-section">
-        <h2>Catégories</h2>
-        <div class="category-pills" id="categoryPills">
-            <button class="pill active" data-category="all">Toutes</button>
-            <button class="pill" data-category="Performance">Performance</button>
-            <button class="pill" data-category="Shaders">Shaders</button>
-            <button class="pill" data-category="Utilitaires">Utilitaires</button>
-            <button class="pill" data-category="PvP">PvP</button>
-            <button class="pill" data-category="Décoration">Décoration</button>
-            <button class="pill" data-category="Monde">Monde</button>
-            <button class="pill" data-category="Mobs">Mobs</button>
-            <button class="pill" data-category="Structures">Structures</button>
-            <button class="pill" data-category="Mini-jeux">Mini-jeux</button>
-            <button class="pill" data-category="Autres">Autres</button>
-        </div>
-    </section>
-
-    <!-- Section Mods & Filtres -->
-    <main class="mods-section" id="mods-section">
-        <div class="controls-bar">
-            <div class="results-count" id="resultsCount">Chargement des mods...</div>
-            <div class="sort-selector">
-                <label for="sortSelect"><i class="fa-solid fa-sort"></i> Trier par :</label>
-                <select id="sortSelect">
-                    <option value="recent">Plus récents</option>
-                    <option value="downloads">Plus téléchargés</option>
-                    <option value="name">Ordre alphabétique</option>
+            <div class="filter-group">
+                <select id="filterLoader">
+                    <option value="all">Tous les Loaders</option>
+                    <option value="fabric">Fabric</option>
+                    <option value="forge">Forge</option>
+                    <option value="neoforge">NeoForge</option>
+                </select>
+                <select id="filterVersion">
+                    <option value="all">Toutes les Versions</option>
+                    <option value="1.20">1.20.x</option>
+                    <option value="1.19">1.19.x</option>
+                    <option value="1.18">1.18.x</option>
+                </select>
+                <select id="sortMods">
+                    <option value="downloads">Téléchargements</option>
+                    <option value="name">Nom</option>
                 </select>
             </div>
-        </div>
+        </section>
 
-        <div class="mods-grid" id="modsGrid">
-            <!-- Injecté dynamiquement par JavaScript -->
-        </div>
+        <!-- Navigation Catégories -->
+        <nav class="categories-nav">
+            <button class="category-btn active" data-category="All">Tous</button>
+            <button class="category-btn" data-category="Performance">Performance</button>
+            <button class="category-btn" data-category="Optimisation">Optimisation</button>
+            <button class="category-btn" data-category="Graphismes">Graphismes</button>
+            <button class="category-btn" data-category="Gameplay">Gameplay</button>
+            <button class="category-btn" data-category="Utilitaires">Utilitaires</button>
+        </nav>
 
-        <div id="noResults" class="no-results hidden">
-            <i class="fa-solid fa-ghost"></i>
-            <h3>Aucun mod trouvé</h3>
-            <p>Essayez de réinitialiser vos critères de recherche ou vos filtres.</p>
+        <!-- Grille des Mods -->
+        <div id="modsGrid" class="mods-grid">
+            <!-- Les mods sont injectés ici via script.js -->
         </div>
     </main>
 
-    <!-- Pied de Page -->
-    <footer>
-        <div class="footer-container">
-            <p>&copy; 2026 <strong>KaZe Mods Hub</strong>. Non affilié à Mojang Studios ou Microsoft.</p>
-            <div class="footer-links">
-                <a href="sitemap.xml">Sitemap</a>
-                <a href="admin.html">Espace Administration</a>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Bouton Retour en haut -->
-    <button id="scrollTopBtn" class="scroll-top-btn" aria-label="Retour en haut">
-        <i class="fa-solid fa-arrow-up"></i>
-    </button>
-
     <script type="module" src="script.js"></script>
-    <script>
-        // Enregistrement du Service Worker PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js');
-            });
-        }
-    </script>
 </body>
-  </html>
+</html>
