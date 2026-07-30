@@ -1,15 +1,14 @@
-/* --- IMPORTS & FONTS --- */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-    --bg-dark: #0b0c10;
-    --bg-card: #14161d;
-    --bg-element: #1e222d;
+    --bg-dark: #0d0e12;
+    --bg-card: #16181e;
+    --bg-element: #1f222a;
     --accent: #e11d48;
     --accent-hover: #f43f5e;
     --text-main: #f3f4f6;
     --text-muted: #9ca3af;
-    --border: #262933;
+    --border: #27272a;
     --radius: 12px;
 }
 
@@ -17,106 +16,111 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Inter', -apple-system, sans-serif !important; /* Remplace l'écriture manuscrite pour un style moderne */
+    font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
 }
 
 body {
     background-color: var(--bg-dark);
     color: var(--text-main);
-    line-height: 1.6;
+    line-height: 1.5;
+    padding-bottom: 3rem;
 }
 
-/* --- TEXTE DU LOADER (Haut de page) --- */
-body > header, #loadingOverlay {
-    text-align: center;
-    color: var(--text-muted);
-}
-
-/* --- NAVIGATION EN HAUT --- */
-nav, .navbar, header nav {
+/* NAVBAR */
+nav {
     background: var(--bg-card);
     border-bottom: 1px solid var(--border);
-    padding: 0.8rem 1.2rem;
+    padding: 1rem;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
+    gap: 0.8rem;
 }
 
-nav a, header nav a {
-    color: var(--text-muted) !important;
+@media (min-width: 600px) {
+    nav {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+}
+
+nav a {
     text-decoration: none !important;
-    font-weight: 500;
-    font-size: 0.9rem;
-    padding: 0.4rem 0.8rem;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 8px;
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
 }
 
-nav a:hover, header nav a:hover {
-    color: #fff !important;
-    background: var(--bg-element);
-}
-
-/* --- SECTION HERO (Boostez votre expérience) --- */
-h1 {
-    font-size: 2.2rem;
+/* HEADER HERO */
+header h1 {
+    font-size: 1.8rem;
     font-weight: 800;
     color: #fff;
-    margin-top: 2rem;
     text-align: center;
-    letter-spacing: -0.5px;
+    margin-top: 1.5rem;
+    padding: 0 1rem;
 }
 
-p {
+header p {
     color: var(--text-muted);
+    text-align: center;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    padding: 0 1.5rem;
 }
 
-/* --- BARRE DE RECHERCHE --- */
-input[type="text"], input[type="search"] {
-    width: 100%;
-    max-width: 600px;
-    display: block;
-    margin: 1.5rem auto;
-    padding: 0.85rem 1.2rem;
+/* BARRE DE RECHERCHE ET FILTRES */
+.controls-section {
     background: var(--bg-card);
-    border: 1px solid var(--border);
+    padding: 1rem;
     border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin: 1.5rem 1rem;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--bg-element);
+    border: 1px solid var(--border);
+    border-radius: 8px;
     color: #fff;
-    font-size: 0.95rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    font-size: 0.9rem;
     outline: none;
-    transition: border-color 0.2s;
 }
 
-input[type="text"]:focus {
-    border-color: var(--accent);
+select {
+    background: var(--bg-element);
+    color: #fff;
+    border: 1px solid var(--border);
+    padding: 0.65rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    outline: none;
 }
 
-/* --- CATEGORIES (BOUTONS) --- */
-h2, .categories-title {
-    margin: 2rem 0 1rem 0;
-    font-size: 1.3rem;
+/* CATEGORIES */
+h2 {
+    font-size: 1.2rem;
     color: #fff;
     text-align: center;
+    margin-bottom: 1rem;
 }
 
-/* Conteneur des boutons de catégories */
-div:has(> button), .categories-list {
+.categories-list, div:has(> .category-btn) {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.5rem;
-    max-width: 900px;
-    margin: 0 auto 2rem auto;
     padding: 0 1rem;
+    margin-bottom: 2rem;
 }
 
-button {
+button, .category-btn {
     background: var(--bg-card);
     color: var(--text-muted);
     border: 1px solid var(--border);
@@ -125,108 +129,68 @@ button {
     font-size: 0.85rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
 }
 
-button:hover, button.active {
-    background: var(--accent);
-    color: #fff;
-    border-color: var(--accent);
-    box-shadow: 0 2px 10px rgba(225, 29, 72, 0.4);
+button.active, .category-btn.active {
+    background: var(--accent) !important;
+    color: #fff !important;
+    border-color: var(--accent) !important;
 }
 
-/* --- SELECTEUR TRIER PAR --- */
-select {
-    background: var(--bg-card);
-    color: #fff;
-    border: 1px solid var(--border);
-    padding: 0.5rem 0.8rem;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    outline: none;
+/* --- STRUCTURE DE LA CARTE MOD (CORRECTION BANNIERE IMAGE) --- */
+.mods-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    padding: 0 1rem;
 }
 
-/* --- GRILLE & CARTE DU MOD (Ex: Sodium) --- */
+/* Force la carte à empiler l'image EN HAUT et le texte EN BAS */
 .mod-card, div[style*="border"] {
     background: var(--bg-card) !important;
     border: 1px solid var(--border) !important;
     border-radius: var(--radius) !important;
-    max-width: 380px;
-    margin: 1.5rem auto;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    transition: transform 0.2s ease;
+    display: flex !important;
+    flex-direction: column !important; /* Image en haut, texte en bas */
+    width: 100% !important;
+    margin: 0 auto 1.5rem auto;
 }
 
-.mod-card:hover {
-    transform: translateY(-5px);
-    border-color: var(--accent) !important;
+/* Image du Mod (Sodium, etc.) prend toute la largeur */
+.mod-card img, div[style*="border"] img, div[style*="background-color"] {
+    width: 100% !important;
+    height: 160px !important;
+    object-fit: cover !important;
+    display: block !important;
+    float: none !important;
 }
 
-/* Badge dans l'image (Ex: Optimisation) */
-.mod-card span, div[style*="Optimisation"] {
-    border-radius: 6px;
-    font-weight: 600;
-}
-
-/* Badges Tags (Fabric, MC 1.20...) */
-span[style*="background"] {
-    background: var(--bg-element) !important;
-    border: 1px solid var(--border);
-    color: var(--text-muted) !important;
-    padding: 0.2rem 0.6rem;
-    border-radius: 6px;
-    font-size: 0.75rem;
-}
-
-/* BOUTONS TELECHARGEMENT (Modrinth & CurseForge) */
+/* Badges de liens (Modrinth / Curseforge) */
 a[href*="modrinth"], a[href*="curseforge"] {
     border-radius: 8px !important;
     font-weight: 600 !important;
     text-decoration: none !important;
-    padding: 0.7rem 1rem !important;
+    padding: 0.6rem 1rem !important;
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    transition: opacity 0.2s;
+    gap: 0.4rem;
+    flex: 1;
 }
 
-a[href*="modrinth"] {
-    background: var(--accent) !important;
-    color: white !important;
-}
+a[href*="modrinth"] { background: var(--accent) !important; color: white !important; }
+a[href*="curseforge"] { background: var(--bg-element) !important; color: white !important; border: 1px solid var(--border); }
 
-a[href*="curseforge"] {
-    background: var(--bg-element) !important;
-    color: white !important;
-    border: 1px solid var(--border);
-}
-
-a[href*="modrinth"]:hover, a[href*="curseforge"]:hover {
-    opacity: 0.9;
-}
-
-/* --- FOOTER --- */
+/* FOOTER */
 footer {
-    margin-top: 4rem;
+    margin-top: 3rem;
     padding: 2rem 1rem;
     text-align: center;
     border-top: 1px solid var(--border);
     background: var(--bg-card);
     font-size: 0.85rem;
+    color: var(--text-muted);
 }
 
-footer a {
-    color: var(--text-muted) !important;
-    text-decoration: underline;
-    margin: 0 0.5rem;
-}
-
-footer a:hover {
-    color: var(--accent) !important;
-}
-
-.hidden {
-    display: none !important;
-    }
+footer a { color: var(--accent) !important; text-decoration: none; }
