@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KaZe Mods Hub</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,56 +14,50 @@
         <p>Chargement du Hub...</p>
     </div>
 
-    <!-- BARRE DE NAVIGATION (Discord, YouTube, Admin) -->
+    <!-- BARRE DE NAVIGATION -->
     <nav>
-        <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: bold; font-size: 1.1rem; color: var(--accent);">
-            <i class="fa-solid fa-cube"></i> KaZe Mods Hub
+        <div style="font-weight: 800; font-size: 1.2rem; color: var(--accent);">
+            📦 KaZe Mods Hub
         </div>
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-            <a href="https://discord.gg" target="_blank" style="background: #5865F2; color: white !important;"><i class="fa-brands fa-discord"></i> Discord</a>
-            <a href="https://youtube.com" target="_blank" style="background: #FF0000; color: white !important;"><i class="fa-brands fa-youtube"></i> YouTube</a>
-            <a href="admin.html" style="background: var(--bg-element); border: 1px solid var(--border);"><i class="fa-solid fa-user-gear"></i> Admin</a>
+            <a href="https://discord.gg" target="_blank" style="background: #5865F2; color: white;">💬 Discord</a>
+            <a href="https://youtube.com" target="_blank" style="background: #FF0000; color: white;">▶️ YouTube</a>
+            <a href="admin.html" style="background: var(--bg-input); color: white; border: 1px solid var(--border-color);">⚙️ Admin</a>
         </div>
     </nav>
 
     <!-- En-tête principal -->
-    <header style="padding: 2rem 1rem 1rem 1rem;">
+    <header>
         <h1>Boostez votre expérience Minecraft</h1>
         <p>Trouvez les meilleurs mods pour optimiser vos performances, améliorer le rendu visuel et enrichir votre gameplay.</p>
     </header>
 
     <!-- Contenu Principal -->
-    <main style="max-width: 1000px; margin: 0 auto; padding: 0 1rem;">
-        
+    <main>
         <!-- Filtres et Recherche -->
-        <section class="controls-section" style="background: var(--bg-card); padding: 1.2rem; border-radius: var(--radius); border: 1px solid var(--border); margin: 1.5rem 0;">
-            <input type="text" id="searchInput" placeholder="Rechercher un mod, exemple: Sodium...">
-            
-            <div style="display: flex; gap: 0.5rem; margin-top: 0.8rem; flex-wrap: wrap;">
-                <select id="filterLoader" style="flex: 1;">
+        <section class="controls-section">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Rechercher un mod, exemple: Sodium...">
+            </div>
+            <div class="filter-group">
+                <select id="filterLoader">
                     <option value="all">Tous les Loaders</option>
                     <option value="fabric">Fabric</option>
                     <option value="forge">Forge</option>
                     <option value="neoforge">NeoForge</option>
                 </select>
-                
-                <select id="filterVersion" style="flex: 1;">
+                <select id="filterVersion">
                     <option value="all">Toutes les Versions</option>
                     <option value="1.20">1.20.x</option>
                     <option value="1.19">1.19.x</option>
                     <option value="1.18">1.18.x</option>
                 </select>
-                
-                <select id="sortMods" style="flex: 1;">
-                    <option value="downloads">Téléchargements</option>
-                    <option value="name">Nom</option>
-                </select>
             </div>
         </section>
 
-        <!-- Catégories -->
+        <!-- Navigation Catégories -->
         <h2>Catégories</h2>
-        <div class="categories-list">
+        <div class="categories-nav">
             <button class="category-btn active" data-category="All">Toutes</button>
             <button class="category-btn" data-category="Performance">Performance</button>
             <button class="category-btn" data-category="Optimisation">Optimisation</button>
@@ -75,19 +68,18 @@
 
         <!-- Grille des Mods -->
         <div id="modsGrid" class="mods-grid">
-            <!-- Les mods sont générés ici par script.js -->
+            <!-- Injecté proprement par script.js -->
         </div>
-
     </main>
 
     <!-- Pied de page -->
     <footer>
         <p>© 2026 KaZe Mods Hub. Non affilié à Mojang Studios ou Microsoft.</p>
         <p style="margin-top: 0.5rem;">
-            <a href="admin.html"><i class="fa-solid fa-lock"></i> Espace Administration</a>
+            <a href="admin.html">⚙️ Espace Administration</a>
         </p>
     </footer>
 
-    <script type="module" src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
