@@ -1,115 +1,270 @@
-/* --- CSS Admin Dashboard Fix --- */
-.admin-body {
-    background-color: #0d0d0d;
-    color: #fff;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* --- REGLES GENERALES --- */
+:root {
+    --bg-main: #0d0e12;
+    --bg-card: #16181e;
+    --bg-input: #1f222a;
+    --accent: #e11d48;
+    --accent-hover: #f43f5e;
+    --text-primary: #f3f4f6;
+    --text-muted: #9ca3af;
+    --border-color: #27272a;
+    --radius: 10px;
+}
+
+* {
+    box-sizing: border-box;
     margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-.auth-overlay {
+body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+/* --- OVERLAY DE CHARGEMENT --- */
+#loadingOverlay {
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.9);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 1000;
-}
-
-.auth-card {
-    background: #1a1a1a;
-    padding: 2rem;
-    border-radius: 12px;
-    border: 1px solid #333;
-    width: 90%; max-width: 400px;
-}
-
-.admin-dashboard {
+    inset: 0;
+    background: var(--bg-main);
     display: flex;
-    min-height: 100vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    transition: opacity 0.3s ease;
 }
 
-.sidebar {
-    width: 240px;
-    background: #141414;
-    padding: 1.5rem;
-    border-right: 1px solid #222;
+.loader-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--border-color);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 1rem;
 }
 
-.sidebar-brand {
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: #ff4757;
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* --- HEADER / NAVBAR --- */
+header {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.5rem 2rem;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2rem;
+    color: var(--accent);
+    margin-bottom: 0.3rem;
+}
+
+header p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+/* --- CONTENEUR PRINCIPAL --- */
+main {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+/* --- BARRE DE RECHERCHE ET FILTRES --- */
+.controls-section {
+    background: var(--bg-card);
+    padding: 1.2rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
     margin-bottom: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
 }
 
-.sidebar-nav a, .btn-logout {
-    display: block;
-    padding: 0.8rem 1rem;
-    color: #ccc;
-    text-decoration: none;
-    border-radius: 8rem;
-    margin-bottom: 0.5rem;
-    background: transparent;
-    border: none;
+.search-box {
+    flex: 1;
+    min-width: 250px;
+}
+
+.search-box input {
     width: 100%;
-    text-align: left;
+    padding: 0.75rem 1rem;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.filter-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.filter-group select {
+    padding: 0.75rem 1rem;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
     cursor: pointer;
 }
 
-.sidebar-nav a.active, .sidebar-nav a:hover {
-    background: #ff4757;
-    color: #fff;
-}
-
-.admin-content {
-    flex: 1;
-    padding: 2rem;
-    background: #0d0d0d;
-}
-
-.admin-section {
-    background: #141414;
-    padding: 1.5rem;
-    border-radius: 10px;
-    border: 1px solid #222;
+/* --- BOUTONS CATEGORIES --- */
+.categories-nav {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
     margin-bottom: 2rem;
 }
 
-.form-group {
-    margin-bottom: 1.2rem;
+.category-btn {
+    padding: 0.6rem 1.2rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    color: var(--text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.category-btn.active, .category-btn:hover {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+/* --- GRILLE DES MODS --- */
+.mods-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+/* --- CARTE DE MOD --- */
+.mod-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    overflow: hidden;
     display: flex;
     flex-direction: column;
+    transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
-.form-group label {
-    margin-bottom: 0.4rem;
-    color: #bbb;
+.mod-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
 }
 
-.form-group input, .form-group select, .form-group textarea {
-    padding: 0.8rem;
-    background: #222;
-    border: 1px solid #333;
-    color: #fff;
-    border-radius: 6px;
-}
-
-.admin-table {
+.mod-image-wrapper {
+    position: relative;
     width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
+    height: 160px;
+    background: #000;
 }
 
-.admin-table th, .admin-table td {
-    padding: 0.8rem;
-    text-align: left;
-    border-bottom: 1px solid #222;
-}
-
-.thumb-img {
-    width: 45px;
-    height: 45px;
+.mod-image-wrapper img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    border-radius: 6px;
 }
+
+.mod-category-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: var(--accent);
+}
+
+.mod-body {
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.mod-title {
+    font-size: 1.15rem;
+    margin-bottom: 0.5rem;
+    color: #fff;
+}
+
+.mod-description {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.mod-meta {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.meta-tag {
+    background: var(--bg-input);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.meta-tag.loader {
+    color: #38bdf8;
+    font-weight: bold;
+}
+
+.mod-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn {
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    flex: 1;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-secondary { background: var(--bg-input); color: white; border: 1px solid var(--border-color); }
+.btn-secondary:hover { background: #2a2e38; }
 
 .hidden { display: none !important; }
