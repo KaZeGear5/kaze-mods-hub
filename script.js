@@ -1,94 +1,99 @@
-// Fonction pour lire les mods ajoutés par l'admin
+// Récupère les mods enregistrés par l'admin via LocalStorage
 function getSavedMods() {
     const saved = localStorage.getItem('kaze_mods');
     if (saved) {
         try {
             return JSON.parse(saved);
         } catch (e) {
-            console.error("Erreur de lecture :", e);
+            console.error("Erreur de lecture des mods:", e);
         }
     }
     return [];
 }
 
-// Affichage de tes mods
+// Rend la liste dynamique
 function renderMods() {
     const grid = document.getElementById('modsGrid');
+    const resultsCount = document.getElementById('resultsCount');
     if (!grid) return;
 
     const mods = getSavedMods();
     const searchVal = (document.getElementById('searchInput')?.value || '').toLowerCase();
-    const loaderVal = document.getElementById('filterLoader')?.value || 'all';
-    const versionVal = document.getElementById('filterVersion')?.value || 'all';
-    const activeCategoryBtn = document.querySelector('.category-btn.active');
-    const categoryVal = activeCategoryBtn ? activeCategoryBtn.dataset.category : 'All';
+    const activePill = document.querySelector('.pill.active');
+    const selectedCategory = activePill ? activePill.dataset.category : 'all';
 
+    // Filtrage
     const filtered = mods.filter(mod => {
         const matchesSearch = (mod.name || '').toLowerCase().includes(searchVal) || 
                               (mod.description || '').toLowerCase().includes(searchVal);
-        const matchesLoader = loaderVal === 'all' || (mod.loader && mod.loader.toLowerCase() === loaderVal.toLowerCase());
-        const matchesVersion = versionVal === 'all' || (mod.versions && mod.versions.includes(versionVal));
-        const matchesCategory = categoryVal === 'All' || categoryVal === 'Toutes' || mod.category === categoryVal;
-        
-        return matchesSearch && matchesLoader && matchesVersion && matchesCategory;
+        const matchesCat = selectedCategory === 'all' || mod.category === selectedCategory;
+        return matchesSearch && matchesCat;
     });
+
+    if (resultsCount) {
+        resultsCount.textContent = `${filtered.length} mod(s) trouvé(s)`;
+    }
 
     if (filtered.length === 0) {
         grid.innerHTML = `
-            <div style="grid-column: 1/-1; text-align: center; color: #9ca3af; padding: 2rem; font-size: 1.3rem;">
-                Aucun mod disponible pour le moment.
+            <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem 1rem;">
+                <i class="fa-solid fa-ghost" style="font-size: 2.5rem; margin-bottom: 0.8rem; display: block;"></i>
+                <p style="font-size: 1.1rem;">Aucun mod disponible pour le moment.</p>
             </div>`;
         return;
     }
 
     grid.innerHTML = filtered.map(mod => `
         <article class="mod-card">
-            <div class="mod-banner">
+            <div class="mod-image-wrapper">
                 <img src="${mod.imageUrl || 'https://via.placeholder.com/400x200?text=Pas+d%27image'}" alt="${mod.name}">
-                <span class="badge-cat">${mod.category || 'Général'}</span>
+                <span class="mod-category-badge">${mod.category || 'Général'}</span>
             </div>
-            <div class="mod-content">
-                <h3>${mod.name}</h3>
-                <p>${mod.description || ''}</p>
-                <div class="tags">
-                    <span class="tag">${mod.loader || 'Fabric'}</span>
-                    <span class="tag">MC ${Array.isArray(mod.versions) ? mod.versions.join(', ') : (mod.versions || '1.20')}</span>
+            <div class="mod-body">
+                <h3 class="mod-title">${mod.name}</h3>
+                <p class="mod-description">${mod.description || ''}</p>
+                <div class="mod-meta">
+                    <span class="meta-tag">${mod.loader || 'Fabric'}</span>
+                    <span class="meta-tag">MC ${mod.versions || '1.20'}</span>
                 </div>
-                <p class="author">Par ${mod.author || 'Inconnu'}</p>
-                <div class="stats">
-                    <span>📥 ${mod.downloads || 0}</span>
-                    <span>🕒 ${mod.date || ''}</span>
-                </div>
-                <div class="actions">
-                    ${mod.modrinthUrl ? `<a href="${mod.modrinthUrl}" target="_blank" class="btn-modrinth">📥 Modrinth</a>` : ''}
-                    ${mod.curseforgeUrl ? `<a href="${mod.curseforgeUrl}" target="_blank" class="btn-curseforge">📥 CurseForge</a>` : ''}
+                <div class="mod-actions">
+                    ${mod.downloadUrl ? `<a href="${mod.downloadUrl}" target="_blank" class="btn btn-primary"><i class="fa-solid fa-download"></i> Télécharger</a>` : ''}
                 </div>
             </div>
         </article>
     `).join('');
 }
 
-// Execution dès que le HTML est chargé (évite le chargement infini)
+// Initialisation dès que le DOM est prêt
 document.addEventListener('DOMContentLoaded', () => {
-    // Retrait du loader
-    const loader = document.getElementById('loadingOverlay');
+    // 1. Déblocage du Loader V1
+    const loader = document.getElementById('app-loader');
     if (loader) {
         loader.style.opacity = '0';
-        setTimeout(() => { loader.style.display = 'none'; }, 200);
+        setTimeout(() => { loader.style.display = 'none'; }, 300);
     }
 
+    // 2. Affichage
     renderMods();
 
-    // Filtres
+    // 3. Recherche
     document.getElementById('searchInput')?.addEventListener('input', renderMods);
-    document.getElementById('filterLoader')?.addEventListener('change', renderMods);
-    document.getElementById('filterVersion')?.addEventListener('change', renderMods);
 
-    document.querySelectorAll('.category-btn').forEach(btn => {
+    // 4. Catégories (Boutons PWA V1)
+    document.querySelectorAll('.pill').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
             renderMods();
         });
     });
+
+    // 5. Toggle Menu Mobile
+    const menuToggle = document.getElementById('menuToggle');
+    const navMenu = document.getElementById('navMenu');
+    if (menuToggle && navMenu) {
+        menuToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('show');
+        });
+    }
 });
