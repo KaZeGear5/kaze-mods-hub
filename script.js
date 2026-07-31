@@ -1,17 +1,17 @@
-// Fonction pour récupérer les mods enregistrés par l'admin
+// Fonction pour lire les mods ajoutés par l'admin
 function getSavedMods() {
     const saved = localStorage.getItem('kaze_mods');
     if (saved) {
         try {
             return JSON.parse(saved);
         } catch (e) {
-            console.error("Erreur lors de la lecture des mods:", e);
+            console.error("Erreur de lecture :", e);
         }
     }
-    return []; // Retourne une liste VIDE s'il n'y a aucun mod ajouté
+    return [];
 }
 
-// Fonction d'affichage des mods dans la grille
+// Affichage de tes mods
 function renderMods() {
     const grid = document.getElementById('modsGrid');
     if (!grid) return;
@@ -23,7 +23,6 @@ function renderMods() {
     const activeCategoryBtn = document.querySelector('.category-btn.active');
     const categoryVal = activeCategoryBtn ? activeCategoryBtn.dataset.category : 'All';
 
-    // Filtrage des mods
     const filtered = mods.filter(mod => {
         const matchesSearch = (mod.name || '').toLowerCase().includes(searchVal) || 
                               (mod.description || '').toLowerCase().includes(searchVal);
@@ -34,7 +33,6 @@ function renderMods() {
         return matchesSearch && matchesLoader && matchesVersion && matchesCategory;
     });
 
-    // S'il n'y a aucun mod dans la base ou aucun mod correspondant au filtre
     if (filtered.length === 0) {
         grid.innerHTML = `
             <div style="grid-column: 1/-1; text-align: center; color: #9ca3af; padding: 2rem; font-size: 1.3rem;">
@@ -43,7 +41,6 @@ function renderMods() {
         return;
     }
 
-    // Affichage des cartes de mods ajoutés
     grid.innerHTML = filtered.map(mod => `
         <article class="mod-card">
             <div class="mod-banner">
@@ -71,26 +68,22 @@ function renderMods() {
     `).join('');
 }
 
-// Gestion de l'écran de chargement et des événements
-window.addEventListener('load', () => {
-    // 1. Masque le loader rouge
+// Execution dès que le HTML est chargé (évite le chargement infini)
+document.addEventListener('DOMContentLoaded', () => {
+    // Retrait du loader
     const loader = document.getElementById('loadingOverlay');
     if (loader) {
         loader.style.opacity = '0';
-        setTimeout(() => {
-            loader.style.display = 'none';
-        }, 300);
+        setTimeout(() => { loader.style.display = 'none'; }, 200);
     }
 
-    // 2. Affiche les mods créés par toi-même
     renderMods();
 
-    // 3. Écouteurs pour la recherche et les filtres
+    // Filtres
     document.getElementById('searchInput')?.addEventListener('input', renderMods);
     document.getElementById('filterLoader')?.addEventListener('change', renderMods);
     document.getElementById('filterVersion')?.addEventListener('change', renderMods);
 
-    // Écouteurs pour les boutons de catégories
     document.querySelectorAll('.category-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
