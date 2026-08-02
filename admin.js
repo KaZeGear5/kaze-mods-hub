@@ -1,164 +1,148 @@
-import { db, auth } from './firebase.js';
-import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+const ADMIN_PASSWORD = "kaze";
 
-const authOverlay = document.getElementById('authOverlay');
-const adminDashboard = document.getElementById('adminDashboard');
-const loginForm = document.getElementById('loginForm');
-const authError = document.getElementById('authError');
-const logoutBtn = document.getElementById('logoutBtn');
+function getSavedItems() {
+    return JSON.parse(localStorage.getItem('kaze_hub_content') || '[]');
+}
 
-const modForm = document.getElementById('modForm');
-const adminModsTableBody = document.getElementById('adminModsTableBody');
-const cancelEditBtn = document.getElementById('cancelEditBtn');
-const formTitle = document.getElementById('formTitle');
+function saveItems(items) {
+    localStorage.setItem('kaze_hub_content', JSON.stringify(items));
+}
 
-let modsList = [];
+document.addEventListener('DOMContentLoaded', () => {
+    const authOverlay = document.getElementById('authOverlay');
+    const adminDashboard = document.getElementById('adminDashboard');
+    const loginForm = document.getElementById('loginForm');
+    const authError = document.getElementById('authError');
 
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        if (authOverlay) authOverlay.classList.add('hidden');
-        if (adminDashboard) adminDashboard.classList.remove('hidden');
-        loadAdminMods();
-    } else {
-        if (authOverlay) authOverlay.classList.remove('hidden');
-        if (adminDashboard) adminDashboard.classList.add('hidden');
+    if (sessionStorage.getItem('admin_logged') === 'true') {
+        authOverlay.classList.add('hidden');
+        adminDashboard.classList.remove('hidden');
+        renderAdmin();
     }
-});
 
-if (loginForm) {
-    loginForm.addEventListener('submit', async (e) => {
+    loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        if (authError) authError.classList.add('hidden');
-        
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-
-        try {
-            await signInWithEmailAndPassword(auth, email, password);
-        } catch (err) {
-            if (authError) {
-                authError.innerText = "Erreur : " + err.message;
-                authError.classList.remove('hidden');
-            }
+        const pwd = document.getElementById('loginPassword').value;
+        if (pwd === ADMIN_PASSWORD) {
+            sessionStorage.setItem('admin_logged', 'true');
+            authOverlay.classList.add('hidden');
+            adminDashboard.classList.remove('hidden');
+            renderAdmin();
+        } else {
+            authError.classList.remove('hidden');
         }
     });
-}
 
-if (logoutBtn) logoutBtn.addEventListener('click', () => signOut(auth));
+    document.getElementById('logoutBtn')?.addEventListener('click', () => {
+        sessionStorage.removeItem('admin_logged');
+        window.location.reload();
+    });
 
-async function loadAdminMods() {
-    try {
-        const snap = await getDocs(collection(db, "mods"));
-        modsList = [];
-        snap.forEach(d => modsList.push({ id: d.id, ...d.data() }));
-        
-        const statTotal = document.getElementById('statTotalMods');
-        if (statTotal) statTotal.innerText = modsList.length;
-        
-        if (adminModsTableBody) {
-            const now = new Date();
-            adminModsTableBody.innerHTML = modsList.map(m => {
-                const isScheduled = m.publishAt && new Date(m.publishAt) > now;
-                const statusBadge = isScheduled 
-                    ? `<span style="color: #f59e0b; font-size:0.8rem;">⏳ Programmé</span>` 
-                    : `<span style="color: #10b981; font-size:0.8rem;">✅ En ligne</span>`;
-
-                return `
-                <tr>
-                    <td><img src="${m.imageUrl || 'https://via.placeholder.com/40'}" class="thumb-img" alt="${m.name}"></td>
-                    <td><strong>${m.name}</strong></td>
-                    <td>${statusBadge}</td>
-                    <td>
-                        <button onclick="editMod('${m.id}')" class="btn btn-secondary" style="padding:0.4rem 0.6rem;"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="deleteMod('${m.id}')" class="btn btn-primary" style="padding:0.4rem 0.6rem;"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>
-            `;}).join('');
-        }
-    } catch (err) {
-        console.error("Erreur :", err);
-    }
-}
-
-if (modForm) {
-    modForm.addEventListener('submit', async (e) => {
+    const contentForm = document.getElementById('contentForm');
+    contentForm.addEventListener('submit', (e) => {
         e.preventDefault();
         
-        const id = document.getElementById('modId').value;
-        const name = document.getElementById('modName').value;
-        const category = document.getElementById('modCategory').value;
-        const mcVersion = document.getElementById('modMcVersion').value;
-        const loader = document.getElementById('modLoader').value;
-        const author = document.getElementById('modAuthor').value;
-        const tags = document.getElementById('modTags').value.split(',').map(t => t.trim());
-        const publishAt = document.getElementById('modPublishAt').value;
-        const modrinthUrl = document.getElementById('modModrinthUrl').value;
-        const curseforgeUrl = document.getElementById('modCurseforgeUrl').value;
-        const description = document.getElementById('modDescription').value;
-        const imageUrl = document.getElementById('modImageUrl').value.trim();
-
-        const modData = {
-            name, category, mcVersion, loader, author, tags,
-            publishAt: publishAt || null,
-            modrinthUrl, curseforgeUrl, description, imageUrl,
-            updatedAt: new Date().toISOString()
+        const items = getSavedItems();
+        const editId = document.getElementById('itemId').value;
+        
+        const newItem = {
+            id: editId ? parseInt(editId) : Date.now(),
+            type: document.getElementById('itemType').value,
+            name: document.getElementById('itemName').value,
+            category: document.getElementById('itemCategory').value,
+            versions: document.getElementById('itemVersion').value,
+            subtype: document.getElementById('itemSubtype').value || 'Général',
+            downloadUrl: document.getElementById('itemDownloadUrl').value,
+            imageUrl: document.getElementById('itemImageUrl').value,
+            description: document.getElementById('itemDescription').value
         };
 
-        try {
-            if (id) {
-                await updateDoc(doc(db, "mods", id), modData);
-            } else {
-                modData.downloads = 0;
-                await addDoc(collection(db, "mods"), modData);
-            }
-            resetForm();
-            loadAdminMods();
-            alert("Mod enregistré avec succès !");
-        } catch (err) {
-            alert("Erreur lors de l'enregistrement : " + err.message);
+        if (editId) {
+            const index = items.findIndex(i => i.id === parseInt(editId));
+            if (index !== -1) items[index] = newItem;
+        } else {
+            items.push(newItem);
         }
+
+        saveItems(items);
+        resetForm();
+        renderAdmin();
     });
-}
 
-window.editMod = (id) => {
-    const m = modsList.find(x => x.id === id);
-    if (!m) return;
-
-    document.getElementById('modId').value = m.id;
-    document.getElementById('modName').value = m.name;
-    document.getElementById('modCategory').value = m.category;
-    document.getElementById('modMcVersion').value = m.mcVersion;
-    document.getElementById('modLoader').value = m.loader;
-    document.getElementById('modAuthor').value = m.author;
-    document.getElementById('modTags').value = m.tags ? m.tags.join(', ') : '';
-    document.getElementById('modPublishAt').value = m.publishAt || '';
-    document.getElementById('modModrinthUrl').value = m.modrinthUrl || '';
-    document.getElementById('modCurseforgeUrl').value = m.curseforgeUrl || '';
-    document.getElementById('modImageUrl').value = m.imageUrl || '';
-    document.getElementById('modDescription').value = m.description;
-
-    if (formTitle) formTitle.innerText = "Modifier : " + m.name;
-    if (cancelEditBtn) cancelEditBtn.classList.remove('hidden');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
-window.deleteMod = async (id) => {
-    if (confirm("Supprimer ce mod ?")) {
-        try {
-            await deleteDoc(doc(db, "mods", id));
-            loadAdminMods();
-        } catch (err) {
-            alert("Erreur : " + err.message);
-        }
-    }
-};
-
-if (cancelEditBtn) cancelEditBtn.addEventListener('click', resetForm);
+    document.getElementById('cancelBtn').addEventListener('click', resetForm);
+});
 
 function resetForm() {
-    if (modForm) modForm.reset();
-    document.getElementById('modId').value = '';
-    if (formTitle) formTitle.innerText = "Ajouter un mod";
-    if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
-                             }
+    document.getElementById('contentForm').reset();
+    document.getElementById('itemId').value = '';
+    document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-plus-circle"></i> Ajouter un Contenu';
+    document.getElementById('cancelBtn').classList.add('hidden');
+}
+
+function renderAdmin() {
+    const items = getSavedItems();
+
+    const mods = items.filter(i => i.type === 'mod');
+    const packs = items.filter(i => i.type === 'resourcepack');
+
+    // 1. Stats Globale (Total) + Total Mods + Total Resource Packs
+    document.getElementById('statGlobal').textContent = items.length;
+    document.getElementById('statTotalMods').textContent = mods.length;
+    document.getElementById('statTotalPacks').textContent = packs.length;
+
+    // 2. Tableau
+    const tbody = document.getElementById('adminTableBody');
+    if (!tbody) return;
+
+    if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#888;">Aucun contenu ajouté.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = items.map(item => `
+        <tr>
+            <td>
+                <span style="background:${item.type === 'mod' ? '#D32F2F' : '#0284c7'}; color:#fff; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">
+                    ${item.type === 'mod' ? 'MOD' : 'RESOURCE PACK'}
+                </span>
+            </td>
+            <td><img src="${item.imageUrl}" class="thumb-img" alt=""></td>
+            <td><strong>${item.name}</strong></td>
+            <td>${item.category}</td>
+            <td>MC ${item.versions}</td>
+            <td>
+                <button onclick="editItem(${item.id})" class="btn btn-secondary" style="padding:4px 8px; font-size:0.8rem;"><i class="fa-solid fa-pen"></i></button>
+                <button onclick="deleteItem(${item.id})" class="btn btn-primary" style="padding:4px 8px; font-size:0.8rem; background:#b91c1c;"><i class="fa-solid fa-trash"></i></button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+window.editItem = function(id) {
+    const items = getSavedItems();
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+
+    document.getElementById('itemId').value = item.id;
+    document.getElementById('itemType').value = item.type;
+    document.getElementById('itemName').value = item.name;
+    document.getElementById('itemCategory').value = item.category;
+    document.getElementById('itemVersion').value = item.versions;
+    document.getElementById('itemSubtype').value = item.subtype || '';
+    document.getElementById('itemDownloadUrl').value = item.downloadUrl;
+    document.getElementById('itemImageUrl').value = item.imageUrl;
+    document.getElementById('itemDescription').value = item.description;
+
+    document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Modifier : ' + item.name;
+    document.getElementById('cancelBtn').classList.remove('hidden');
+    window.scrollTo({ top: document.getElementById('formSection').offsetTop - 20, behavior: 'smooth' });
+};
+
+window.deleteItem = function(id) {
+    if (confirm("Voulez-vous vraiment supprimer ce contenu ?")) {
+        let items = getSavedItems();
+        items = items.filter(i => i.id !== id);
+        saveItems(items);
+        renderAdmin();
+    }
+};
