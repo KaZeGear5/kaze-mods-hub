@@ -1,5 +1,8 @@
-const ADMIN_PASSWORD = "kaze";
+// Configuration Firebase Auth + Firestore / Realtime
+// Assure-toi que les scripts Firebase sont bien chargés dans ton <head> si tu l'utilises
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
+// Récupération des données locales
 function getSavedItems() {
     return JSON.parse(localStorage.getItem('kaze_hub_content') || '[]');
 }
@@ -14,30 +17,50 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
     const authError = document.getElementById('authError');
 
-    if (sessionStorage.getItem('admin_logged') === 'true') {
-        authOverlay.classList.add('hidden');
-        adminDashboard.classList.remove('hidden');
-        renderAdmin();
-    }
-
+    // 1. Connexion avec Firebase
     loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const pwd = document.getElementById('loginPassword').value;
-        if (pwd === ADMIN_PASSWORD) {
-            sessionStorage.setItem('admin_logged', 'true');
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+
+        // Firebase Auth Method
+        const auth = getAuth();
+        signInWithEmailAndPassword(auth, email, password)
+            .then((userCredential) => {
+                // Succès de connexion
+                authError.classList.add('hidden');
+                authOverlay.classList.add('hidden');
+                adminDashboard.classList.remove('hidden');
+                renderAdmin();
+            })
+            .catch((error) => {
+                console.error("Erreur Firebase:", error.message);
+                authError.textContent = "Email ou mot de passe Firebase incorrect.";
+                authError.classList.remove('hidden');
+            });
+    });
+
+    // Écouteur d'état Firebase (Maintient la session active)
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
             authOverlay.classList.add('hidden');
             adminDashboard.classList.remove('hidden');
             renderAdmin();
         } else {
-            authError.classList.remove('hidden');
+            authOverlay.classList.remove('hidden');
+            adminDashboard.classList.add('hidden');
         }
     });
 
+    // Déconnexion Firebase
     document.getElementById('logoutBtn')?.addEventListener('click', () => {
-        sessionStorage.removeItem('admin_logged');
-        window.location.reload();
+        signOut(auth).then(() => {
+            window.location.reload();
+        });
     });
 
+    // 2. Gestion Formulaire (Ajout / Édition)
     const contentForm = document.getElementById('contentForm');
     contentForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -69,33 +92,34 @@ document.addEventListener('DOMContentLoaded', () => {
         renderAdmin();
     });
 
-    document.getElementById('cancelBtn').addEventListener('click', resetForm);
+    document.getElementById('cancelBtn')?.addEventListener('click', resetForm);
 });
 
 function resetForm() {
     document.getElementById('contentForm').reset();
     document.getElementById('itemId').value = '';
-    document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-plus-circle"></i> Ajouter un Contenu';
+    document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-plus-circle"></i> Ajouter un contenu';
     document.getElementById('cancelBtn').classList.add('hidden');
 }
 
+// 3. Affichage Stats & Tableau
 function renderAdmin() {
     const items = getSavedItems();
 
     const mods = items.filter(i => i.type === 'mod');
     const packs = items.filter(i => i.type === 'resourcepack');
 
-    // 1. Stats Globale (Total) + Total Mods + Total Resource Packs
+    // Mise à jour des 3 cartes
     document.getElementById('statGlobal').textContent = items.length;
     document.getElementById('statTotalMods').textContent = mods.length;
     document.getElementById('statTotalPacks').textContent = packs.length;
 
-    // 2. Tableau
+    // Rendu du tableau
     const tbody = document.getElementById('adminTableBody');
     if (!tbody) return;
 
     if (items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#888;">Aucun contenu ajouté.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#888;">Aucun contenu enregistré.</td></tr>`;
         return;
     }
 
@@ -106,7 +130,7 @@ function renderAdmin() {
                     ${item.type === 'mod' ? 'MOD' : 'RESOURCE PACK'}
                 </span>
             </td>
-            <td><img src="${item.imageUrl}" class="thumb-img" alt=""></td>
+            <td><img src="${item.imageUrl}" class="thumb-img" alt="" style="width:40px; height:40px; object-fit:cover; border-radius:4px;"></td>
             <td><strong>${item.name}</strong></td>
             <td>${item.category}</td>
             <td>MC ${item.versions}</td>
@@ -139,7 +163,7 @@ window.editItem = function(id) {
 };
 
 window.deleteItem = function(id) {
-    if (confirm("Voulez-vous vraiment supprimer ce contenu ?")) {
+    if (confirm("Supprimer définitivement ce contenu ?")) {
         let items = getSavedItems();
         items = items.filter(i => i.id !== id);
         saveItems(items);
