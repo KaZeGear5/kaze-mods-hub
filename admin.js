@@ -1,7 +1,3 @@
-import { db, auth } from './firebase.js';
-import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
 const authOverlay = document.getElementById('authOverlay');
 const adminDashboard = document.getElementById('adminDashboard');
 const loginForm = document.getElementById('loginForm');
@@ -13,10 +9,25 @@ const adminModsTableBody = document.getElementById('adminModsTableBody');
 const cancelEditBtn = document.getElementById('cancelEditBtn');
 const formTitle = document.getElementById('formTitle');
 
-let modsList = [];
+// 1. Simuler une connexion rapide (Local)
+if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        localStorage.setItem('kaze_admin_logged', 'true');
+        checkAuth();
+    });
+}
 
-onAuthStateChanged(auth, (user) => {
-    if (user) {
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('kaze_admin_logged');
+        checkAuth();
+    });
+}
+
+function checkAuth() {
+    const isLogged = localStorage.getItem('kaze_admin_logged') === 'true';
+    if (isLogged) {
         if (authOverlay) authOverlay.classList.add('hidden');
         if (adminDashboard) adminDashboard.classList.remove('hidden');
         loadAdminMods();
@@ -24,65 +35,40 @@ onAuthStateChanged(auth, (user) => {
         if (authOverlay) authOverlay.classList.remove('hidden');
         if (adminDashboard) adminDashboard.classList.add('hidden');
     }
-});
-
-if (loginForm) {
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        if (authError) authError.classList.add('hidden');
-        
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-
-        try {
-            await signInWithEmailAndPassword(auth, email, password);
-        } catch (err) {
-            if (authError) {
-                authError.innerText = "Erreur : " + err.message;
-                authError.classList.remove('hidden');
-            }
-        }
-    });
 }
 
-if (logoutBtn) logoutBtn.addEventListener('click', () => signOut(auth));
+// 2. Charger les mods depuis localStorage
+function getMods() {
+    return JSON.parse(localStorage.getItem('kaze_mods')) || [];
+}
 
-async function loadAdminMods() {
-    try {
-        const snap = await getDocs(collection(db, "mods"));
-        modsList = [];
-        snap.forEach(d => modsList.push({ id: d.id, ...d.data() }));
-        
-        const statTotal = document.getElementById('statTotalMods');
-        if (statTotal) statTotal.innerText = modsList.length;
-        
-        if (adminModsTableBody) {
-            const now = new Date();
-            adminModsTableBody.innerHTML = modsList.map(m => {
-                const isScheduled = m.publishAt && new Date(m.publishAt) > now;
-                const statusBadge = isScheduled 
-                    ? `<span style="color: #f59e0b; font-size:0.8rem;">⏳ Programmé</span>` 
-                    : `<span style="color: #10b981; font-size:0.8rem;">✅ En ligne</span>`;
+function saveMods(mods) {
+    localStorage.setItem('kaze_mods', JSON.stringify(mods));
+}
 
-                return `
-                <tr>
-                    <td><img src="${m.imageUrl || 'https://via.placeholder.com/40'}" class="thumb-img" alt="${m.name}"></td>
-                    <td><strong>${m.name}</strong></td>
-                    <td>${statusBadge}</td>
-                    <td>
-                        <button onclick="editMod('${m.id}')" class="btn btn-secondary" style="padding:0.4rem 0.6rem;"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="deleteMod('${m.id}')" class="btn btn-primary" style="padding:0.4rem 0.6rem;"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>
-            `;}).join('');
-        }
-    } catch (err) {
-        console.error("Erreur :", err);
+function loadAdminMods() {
+    const modsList = getMods();
+    const statTotal = document.getElementById('statTotalMods');
+    if (statTotal) statTotal.innerText = modsList.length;
+    
+    if (adminModsTableBody) {
+        adminModsTableBody.innerHTML = modsList.map((m, index) => `
+            <tr>
+                <td><img src="${m.imageUrl || 'https://via.placeholder.com/40'}" class="thumb-img" alt="${m.name}"></td>
+                <td><strong>${m.name}</strong></td>
+                <td><span style="color: #10b981; font-size:0.8rem;">✅ En ligne</span></td>
+                <td>
+                    <button onclick="editMod(${index})" class="btn btn-secondary" style="padding:0.4rem 0.6rem;"><i class="fa-solid fa-pen"></i></button>
+                    <button onclick="deleteMod(${index})" class="btn btn-primary" style="padding:0.4rem 0.6rem;"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>
+        `).join('');
     }
 }
 
+// 3. Soumettre et Enregistrer le Formulaire
 if (modForm) {
-    modForm.addEventListener('submit', async (e) => {
+    modForm.addEventListener('submit', (e) => {
         e.preventDefault();
         
         const id = document.getElementById('modId').value;
@@ -91,66 +77,58 @@ if (modForm) {
         const mcVersion = document.getElementById('modMcVersion').value;
         const loader = document.getElementById('modLoader').value;
         const author = document.getElementById('modAuthor').value;
-        const tags = document.getElementById('modTags').value.split(',').map(t => t.trim());
-        const publishAt = document.getElementById('modPublishAt').value;
         const modrinthUrl = document.getElementById('modModrinthUrl').value;
         const curseforgeUrl = document.getElementById('modCurseforgeUrl').value;
         const description = document.getElementById('modDescription').value;
         const imageUrl = document.getElementById('modImageUrl').value.trim();
 
-        const modData = {
-            name, category, mcVersion, loader, author, tags,
-            publishAt: publishAt || null,
-            modrinthUrl, curseforgeUrl, description, imageUrl,
-            updatedAt: new Date().toISOString()
+        const newMod = {
+            name, category, versions: mcVersion, loader, author,
+            downloadUrl: modrinthUrl || curseforgeUrl || '#',
+            description, imageUrl
         };
 
-        try {
-            if (id) {
-                await updateDoc(doc(db, "mods", id), modData);
-            } else {
-                modData.downloads = 0;
-                await addDoc(collection(db, "mods"), modData);
-            }
-            resetForm();
-            loadAdminMods();
-            alert("Mod enregistré avec succès !");
-        } catch (err) {
-            alert("Erreur lors de l'enregistrement : " + err.message);
+        let mods = getMods();
+
+        if (id !== '') {
+            mods[parseInt(id)] = newMod;
+        } else {
+            mods.push(newMod);
         }
+
+        saveMods(mods);
+        resetForm();
+        loadAdminMods();
+        alert("Mod enregistré avec succès !");
     });
 }
 
-window.editMod = (id) => {
-    const m = modsList.find(x => x.id === id);
+window.editMod = (index) => {
+    const mods = getMods();
+    const m = mods[index];
     if (!m) return;
 
-    document.getElementById('modId').value = m.id;
+    document.getElementById('modId').value = index;
     document.getElementById('modName').value = m.name;
     document.getElementById('modCategory').value = m.category;
-    document.getElementById('modMcVersion').value = m.mcVersion;
-    document.getElementById('modLoader').value = m.loader;
-    document.getElementById('modAuthor').value = m.author;
-    document.getElementById('modTags').value = m.tags ? m.tags.join(', ') : '';
-    document.getElementById('modPublishAt').value = m.publishAt || '';
-    document.getElementById('modModrinthUrl').value = m.modrinthUrl || '';
-    document.getElementById('modCurseforgeUrl').value = m.curseforgeUrl || '';
+    document.getElementById('modMcVersion').value = m.versions || '';
+    document.getElementById('modLoader').value = m.loader || '';
+    document.getElementById('modAuthor').value = m.author || '';
+    document.getElementById('modModrinthUrl').value = m.downloadUrl || '';
     document.getElementById('modImageUrl').value = m.imageUrl || '';
-    document.getElementById('modDescription').value = m.description;
+    document.getElementById('modDescription').value = m.description || '';
 
     if (formTitle) formTitle.innerText = "Modifier : " + m.name;
     if (cancelEditBtn) cancelEditBtn.classList.remove('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
-window.deleteMod = async (id) => {
+window.deleteMod = (index) => {
     if (confirm("Supprimer ce mod ?")) {
-        try {
-            await deleteDoc(doc(db, "mods", id));
-            loadAdminMods();
-        } catch (err) {
-            alert("Erreur : " + err.message);
-        }
+        let mods = getMods();
+        mods.splice(index, 1);
+        saveMods(mods);
+        loadAdminMods();
     }
 };
 
@@ -161,4 +139,7 @@ function resetForm() {
     document.getElementById('modId').value = '';
     if (formTitle) formTitle.innerText = "Ajouter un mod";
     if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
-                             }
+}
+
+// Initialisation au chargement
+checkAuth();
