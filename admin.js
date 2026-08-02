@@ -46,23 +46,23 @@ function saveMods(mods) {
     localStorage.setItem('kaze_mods', JSON.stringify(mods));
 }
 
-// 3. Affichage dans le tableau Admin
+// 3. Affichage des mods dans l'Admin
 function loadAdminMods() {
     const modsList = getMods();
     const statTotal = document.getElementById('statTotalMods');
     if (statTotal) statTotal.innerText = modsList.length;
     
     if (adminModsTableBody) {
-        const nowTime = Date.now();
+        const nowMs = Date.now(); // Timestamp actuel en ms
 
         adminModsTableBody.innerHTML = modsList.map((m, index) => {
-            // Verification de la date avec getTime()
-            const publishTime = m.publishAt ? new Date(m.publishAt).getTime() : 0;
-            const isScheduled = publishTime > nowTime;
+            // Un mod est programmé uniquement si publishAt est supérieur au temps présent
+            const publishMs = m.publishAt ? Number(m.publishAt) : 0;
+            const isScheduled = publishMs > nowMs;
 
             const statusBadge = isScheduled 
-                ? `<span style="color: #f59e0b; font-size:0.8rem; font-weight: bold;">⏳ Programmé (${new Date(m.publishAt).toLocaleString('fr-FR')})</span>` 
-                : `<span style="color: #10b981; font-size:0.8rem; font-weight: bold;">✅ En ligne</span>`;
+                ? `<span style="color: #f59e0b; font-size:0.85rem; font-weight: bold;">⏳ Programmé (${new Date(publishMs).toLocaleString('fr-FR')})</span>` 
+                : `<span style="color: #10b981; font-size:0.85rem; font-weight: bold;">✅ En ligne</span>`;
 
             return `
             <tr>
@@ -79,7 +79,7 @@ function loadAdminMods() {
     }
 }
 
-// 4. Enregistrement / Modification
+// 4. Soumission du Formulaire (Ajout / Modification)
 if (modForm) {
     modForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -90,11 +90,14 @@ if (modForm) {
         const mcVersion = document.getElementById('modMcVersion').value;
         const loader = document.getElementById('modLoader').value;
         const author = document.getElementById('modAuthor').value;
-        const publishAt = document.getElementById('modPublishAt').value;
+        const publishAtInput = document.getElementById('modPublishAt').value;
         const modrinthUrl = document.getElementById('modModrinthUrl')?.value || '';
         const curseforgeUrl = document.getElementById('modCurseforgeUrl')?.value || '';
         const description = document.getElementById('modDescription').value;
         const imageUrl = document.getElementById('modImageUrl').value.trim();
+
+        // FIX DÉFINITIF : Conversion de l'input HTML en TIMESTAMP NUMÉRIQUE (MS)
+        const publishAtTimestamp = publishAtInput ? new Date(publishAtInput).getTime() : null;
 
         const newMod = {
             name,
@@ -102,7 +105,7 @@ if (modForm) {
             versions: mcVersion,
             loader,
             author,
-            publishAt: publishAt ? publishAt : null,
+            publishAt: publishAtTimestamp, // Stocke un nombre pur
             downloadUrl: modrinthUrl || curseforgeUrl || '#',
             modrinthUrl,
             curseforgeUrl,
@@ -125,7 +128,7 @@ if (modForm) {
     });
 }
 
-// 5. Édition
+// 5. Mode Édition
 window.editMod = (index) => {
     const mods = getMods();
     const m = mods[index];
@@ -137,7 +140,15 @@ window.editMod = (index) => {
     document.getElementById('modMcVersion').value = m.versions || '';
     document.getElementById('modLoader').value = m.loader || '';
     document.getElementById('modAuthor').value = m.author || '';
-    document.getElementById('modPublishAt').value = m.publishAt || '';
+    
+    // Formatting du timestamp numérique vers le format HTML "YYYY-MM-THH:mm"
+    if (m.publishAt) {
+        const d = new Date(Number(m.publishAt));
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        document.getElementById('modPublishAt').value = d.toISOString().slice(0, 16);
+    } else {
+        document.getElementById('modPublishAt').value = '';
+    }
     
     if (document.getElementById('modModrinthUrl')) {
         document.getElementById('modModrinthUrl').value = m.modrinthUrl || m.downloadUrl || '';
@@ -156,7 +167,7 @@ window.editMod = (index) => {
 
 // 6. Suppression
 window.deleteMod = (index) => {
-    if (confirm("Supprimer ce mod ?")) {
+    if (confirm("Voulez-vous vraiment supprimer ce mod ?")) {
         let mods = getMods();
         mods.splice(index, 1);
         saveMods(mods);
@@ -173,5 +184,5 @@ function resetForm() {
     if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
 }
 
-// Lancement au chargement
+// Lancement au chargement de la page
 checkAuth();
