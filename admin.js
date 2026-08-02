@@ -37,7 +37,7 @@ function checkAuth() {
     }
 }
 
-// 2. Fonctions de stockage LocalStorage
+// 2. Fonctions LocalStorage
 function getMods() {
     return JSON.parse(localStorage.getItem('kaze_mods')) || [];
 }
@@ -46,20 +46,23 @@ function saveMods(mods) {
     localStorage.setItem('kaze_mods', JSON.stringify(mods));
 }
 
-// 3. Chargement et affichage des mods dans le tableau Admin
+// 3. Affichage dans le tableau Admin
 function loadAdminMods() {
     const modsList = getMods();
     const statTotal = document.getElementById('statTotalMods');
     if (statTotal) statTotal.innerText = modsList.length;
     
     if (adminModsTableBody) {
-        const now = new Date();
+        const nowTime = Date.now();
+
         adminModsTableBody.innerHTML = modsList.map((m, index) => {
-            // Vérification si la date de publication est dans le futur
-            const isScheduled = m.publishAt && new Date(m.publishAt) > now;
+            // Verification de la date avec getTime()
+            const publishTime = m.publishAt ? new Date(m.publishAt).getTime() : 0;
+            const isScheduled = publishTime > nowTime;
+
             const statusBadge = isScheduled 
-                ? `<span style="color: #f59e0b; font-size:0.8rem;">⏳ Programmé (${new Date(m.publishAt).toLocaleString('fr-FR')})</span>` 
-                : `<span style="color: #10b981; font-size:0.8rem;">✅ En ligne</span>`;
+                ? `<span style="color: #f59e0b; font-size:0.8rem; font-weight: bold;">⏳ Programmé (${new Date(m.publishAt).toLocaleString('fr-FR')})</span>` 
+                : `<span style="color: #10b981; font-size:0.8rem; font-weight: bold;">✅ En ligne</span>`;
 
             return `
             <tr>
@@ -99,7 +102,7 @@ if (modForm) {
             versions: mcVersion,
             loader,
             author,
-            publishAt: publishAt || null,
+            publishAt: publishAt ? publishAt : null,
             downloadUrl: modrinthUrl || curseforgeUrl || '#',
             modrinthUrl,
             curseforgeUrl,
