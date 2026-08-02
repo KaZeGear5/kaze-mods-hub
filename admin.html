@@ -3,25 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administration - KaZe Mods & Resource Hub</title>
+    <title>Administration - KaZe Mods Hub</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <!-- Overlay Connexion Admin -->
+    <!-- Overlay Connexion (Email + Mdp remis à l'identique) -->
     <div id="authOverlay" class="auth-overlay">
         <div class="auth-card">
             <h2><i class="fa-solid fa-lock"></i> Connexion Admin</h2>
             <form id="loginForm">
                 <div class="input-group">
-                    <label>Mot de passe Admin</label>
-                    <input type="password" id="loginPassword" placeholder="Saisir le mot de passe" required>
+                    <label>Email Admin</label>
+                    <input type="email" id="loginEmail" placeholder="admin@kaze.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Mot de passe</label>
+                    <input type="password" id="loginPassword" required>
                 </div>
                 <button type="submit" class="btn btn-primary full-width">Se connecter</button>
-                <p id="authError" class="error-msg hidden">Mot de passe incorrect.</p>
+                <p id="authError" class="error-msg hidden">Identifiants incorrects.</p>
             </form>
         </div>
     </div>
@@ -33,7 +36,7 @@
                 <h3>KaZe Admin</h3>
             </div>
             <ul class="sidebar-menu">
-                <li class="active"><a href="#"><i class="fa-solid fa-chart-line"></i> Vue d'ensemble</a></li>
+                <li class="active"><a href="#"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
                 <li><a href="index.html" target="_blank"><i class="fa-solid fa-eye"></i> Voir le site</a></li>
                 <li><button id="logoutBtn" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</button></li>
             </ul>
@@ -44,17 +47,17 @@
                 <h1>Tableau de bord</h1>
             </header>
 
-            <!-- STATISTIQUES GLOBALES -->
+            <!-- Stats : Globale / Mods / Resource Packs -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <i class="fa-solid fa-layer-group"></i>
                     <div>
                         <h3 id="statGlobal">0</h3>
-                        <p>Statistique Globale (Total)</p>
+                        <p>Statistique Globale</p>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <i class="fa-solid fa-puzzle-piece"></i>
+                    <i class="fa-solid fa-cubes"></i>
                     <div>
                         <h3 id="statTotalMods">0</h3>
                         <p>Total Mods</p>
@@ -69,15 +72,15 @@
                 </div>
             </div>
 
-            <!-- FORMULAIRE DE CRÉATION ET ÉDITION -->
+            <!-- Formulaire Ajout / Édition -->
             <section class="admin-section" id="formSection">
-                <h2 id="formTitle"><i class="fa-solid fa-plus-circle"></i> Ajouter un Contenu</h2>
+                <h2 id="formTitle"><i class="fa-solid fa-plus-circle"></i> Ajouter un contenu</h2>
                 <form id="contentForm" class="mod-form">
                     <input type="hidden" id="itemId">
                     
                     <div class="form-grid">
                         <div class="input-group">
-                            <label>Type de contenu *</label>
+                            <label>Type *</label>
                             <select id="itemType" required>
                                 <option value="mod">🧩 Mod Minecraft</option>
                                 <option value="resourcepack">🎨 Resource Pack (Texture)</option>
@@ -86,60 +89,62 @@
 
                         <div class="input-group">
                             <label>Nom *</label>
-                            <input type="text" id="itemName" placeholder="ex: Sodium ou Faithful 32x" required>
+                            <input type="text" id="itemName" required>
                         </div>
 
                         <div class="input-group">
                             <label>Catégorie *</label>
                             <select id="itemCategory" required>
                                 <option value="Performance">Performance</option>
-                                <option value="Optimisation">Optimisation</option>
                                 <option value="Shaders">Shaders</option>
-                                <option value="Textures HD">Textures HD</option>
-                                <option value="PvP / UI">PvP / UI</option>
                                 <option value="Utilitaires">Utilitaires</option>
+                                <option value="PvP">PvP</option>
                                 <option value="Décoration">Décoration</option>
+                                <option value="Monde">Monde</option>
+                                <option value="Mobs">Mobs</option>
+                                <option value="Structures">Structures</option>
+                                <option value="Mini-jeux">Mini-jeux</option>
                                 <option value="Autres">Autres</option>
                             </select>
                         </div>
 
                         <div class="input-group">
                             <label>Version Minecraft *</label>
-                            <input type="text" id="itemVersion" placeholder="ex: 1.20.4 / 1.16.5" required>
+                            <input type="text" id="itemVersion" placeholder="ex: 1.20.4" required>
                         </div>
 
                         <div class="input-group">
-                            <label>Loader / Résolution</label>
-                            <input type="text" id="itemSubtype" placeholder="ex: Fabric / Forge ou 32x / 64x">
+                            <label>Mod Loader / Resolution *</label>
+                            <input type="text" id="itemSubtype" placeholder="ex: Fabric / Forge ou 32x" required>
                         </div>
 
                         <div class="input-group">
                             <label>Lien de Téléchargement *</label>
-                            <input type="url" id="itemDownloadUrl" placeholder="https://..." required>
+                            <input type="url" id="itemDownloadUrl" required>
                         </div>
 
                         <div class="input-group full-width">
-                            <label>URL de l'image / Banner *</label>
+                            <label>URL Image *</label>
                             <input type="url" id="itemImageUrl" placeholder="https://..." required>
                         </div>
 
                         <div class="input-group full-width">
                             <label>Description *</label>
-                            <textarea id="itemDescription" rows="3" placeholder="Description..." required></textarea>
+                            <textarea id="itemDescription" rows="4" required></textarea>
                         </div>
                     </div>
 
                     <div class="form-actions" style="margin-top: 1rem; display: flex; gap: 10px;">
-                        <button type="submit" class="btn btn-primary" id="saveBtn"><i class="fa-solid fa-floppy-disk"></i> Enregistrer</button>
-                        <button type="button" class="btn btn-secondary hidden" id="cancelBtn"><i class="fa-solid fa-xmark"></i> Annuler</button>
+                        <button type="submit" class="btn btn-primary" id="saveBtn">Enregistrer</button>
+                        <button type="button" class="btn btn-secondary hidden" id="cancelBtn">Annuler</button>
                     </div>
                 </form>
             </section>
 
-            <!-- TABLEAU DES CONTENUS -->
+            <!-- Table des Contenus -->
             <section class="admin-section">
-                <h2><i class="fa-solid fa-list"></i> Liste des Contenus (Modifier / Supprimer)</h2>
-                <div class="table-wrapper" style="overflow-x: auto;">
+                <h2>Contenus Existants</h2>
+                <div class="table-wrapper">
                     <table class="admin-table">
                         <thead>
                             <tr>
@@ -152,7 +157,7 @@
                             </tr>
                         </thead>
                         <tbody id="adminTableBody">
-                            <!-- Rempli dynamiquement -->
+                            <!-- Injections via JavaScript -->
                         </tbody>
                     </table>
                 </div>
