@@ -3,240 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administration - KaZe Mods Hub</title>
+    <title>Administration - KaZe Mods & Resource Hub</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * { box-sizing: border-box; }
-        body { 
-            background-color: #0f0f11; 
-            color: #e0e0e0; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            margin: 0; 
-            padding: 1rem; 
-        }
-        .hidden { display: none !important; }
-
-        /* Auth Screen */
-        .auth-overlay { 
-            position: fixed; 
-            inset: 0; 
-            background: #0f0f11; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            z-index: 999; 
-        }
-        .auth-card { 
-            background: #18181b; 
-            border: 1px solid #27272a; 
-            padding: 2rem; 
-            border-radius: 12px; 
-            width: 100%; 
-            max-width: 360px; 
-            text-align: center; 
-        }
-        .auth-card input { 
-            width: 100%; 
-            padding: 0.8rem; 
-            margin: 0.5rem 0 1rem 0; 
-            background: #0f0f11; 
-            border: 1px solid #27272a; 
-            border-radius: 6px; 
-            color: #fff; 
-        }
-
-        /* Dashboard */
-        .admin-dashboard { 
-            max-width: 800px; 
-            margin: 0 auto; 
-        }
-        .admin-header-nav { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            background: #18181b; 
-            padding: 1rem; 
-            border-radius: 8px; 
-            margin-bottom: 1.5rem; 
-            border: 1px solid #27272a; 
-        }
-        .admin-section { 
-            background: #18181b; 
-            border: 1px solid #27272a; 
-            border-radius: 10px; 
-            padding: 1.5rem; 
-            margin-bottom: 1.5rem; 
-        }
-        
-        /* Formulaires */
-        .form-group { 
-            margin-bottom: 1rem; 
-            display: flex; 
-            flex-direction: column; 
-            text-align: left; 
-        }
-        .form-group label { 
-            font-size: 0.85rem; 
-            margin-bottom: 0.4rem; 
-            color: #a1a1aa; 
-            font-weight: 600; 
-        }
-        .form-group input, .form-group select, .form-group textarea { 
-            padding: 0.75rem; 
-            background: #0f0f11; 
-            border: 1px solid #27272a; 
-            color: #fff; 
-            border-radius: 6px; 
-            font-size: 0.95rem; 
-            width: 100%;
-        }
-        .form-group small {
-            color: #71717a;
-            margin-top: 0.3rem;
-            font-size: 0.75rem;
-        }
-
-        /* Boutons */
-        .btn { 
-            padding: 0.75rem 1.2rem; 
-            border-radius: 6px; 
-            border: none; 
-            font-weight: bold; 
-            cursor: pointer; 
-            text-decoration: none; 
-            display: inline-flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 0.5rem; 
-        }
-        .btn-primary { background: #e11d48; color: white; }
-        .btn-secondary { background: #27272a; color: white; }
-        
-        /* Tableau */
-        .table-wrapper { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; text-align: left; }
-        th, td { padding: 0.75rem; border-bottom: 1px solid #27272a; }
-        th { color: #a1a1aa; font-size: 0.85rem; }
-        .thumb-img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <!-- Overlay Connexion -->
+    <!-- Overlay Connexion Admin -->
     <div id="authOverlay" class="auth-overlay">
         <div class="auth-card">
-            <h2 style="color: #e11d48; margin-top:0;"><i class="fa-solid fa-lock"></i> Connexion Admin</h2>
+            <h2><i class="fa-solid fa-lock"></i> Connexion Admin</h2>
             <form id="loginForm">
-                <input type="email" id="loginEmail" required placeholder="Email admin">
-                <input type="password" id="loginPassword" required placeholder="Mot de passe">
-                <div id="authError" style="color: #ef4444; margin-bottom: 1rem; font-size: 0.85rem;" class="hidden"></div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">Se connecter</button>
+                <div class="input-group">
+                    <label>Mot de passe Admin</label>
+                    <input type="password" id="loginPassword" placeholder="Saisir le mot de passe" required>
+                </div>
+                <button type="submit" class="btn btn-primary full-width">Se connecter</button>
+                <p id="authError" class="error-msg hidden">Mot de passe incorrect.</p>
             </form>
         </div>
     </div>
 
-    <!-- Dashboard -->
+    <!-- Dashboard Admin -->
     <div id="adminDashboard" class="admin-dashboard hidden">
-        <div class="admin-header-nav">
-            <span style="font-weight: bold; color: #e11d48;"><i class="fa-solid fa-cube"></i> KaZe Admin</span>
-            <div>
-                <a href="index.html" target="_blank" class="btn btn-secondary" style="font-size: 0.8rem;"><i class="fa-solid fa-globe"></i> Voir le site</a>
-                <button id="logoutBtn" class="btn btn-secondary" style="font-size: 0.8rem; background: #3f3f46;"><i class="fa-solid fa-power-off"></i></button>
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3>KaZe Admin</h3>
             </div>
-        </div>
+            <ul class="sidebar-menu">
+                <li class="active"><a href="#"><i class="fa-solid fa-chart-line"></i> Vue d'ensemble</a></li>
+                <li><a href="index.html" target="_blank"><i class="fa-solid fa-eye"></i> Voir le site</a></li>
+                <li><button id="logoutBtn" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</button></li>
+            </ul>
+        </aside>
 
-        <section class="admin-section">
-            <h2 id="formTitle" style="margin-top:0;">Ajouter un mod</h2>
-            <form id="modForm">
-                <input type="hidden" id="modId">
+        <main class="admin-content">
+            <header class="content-header">
+                <h1>Tableau de bord</h1>
+            </header>
 
-                <div class="form-group">
-                    <label>Nom du Mod *</label>
-                    <input type="text" id="modName" required>
+            <!-- STATISTIQUES GLOBALES -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <div>
+                        <h3 id="statGlobal">0</h3>
+                        <p>Statistique Globale (Total)</p>
+                    </div>
                 </div>
-
-                <div class="form-group">
-                    <label>Catégorie *</label>
-                    <select id="modCategory" required>
-                        <option value="Performance">Performance</option>
-                        <option value="Optimisation">Optimisation</option>
-                        <option value="Graphismes">Graphismes</option>
-                        <option value="Gameplay">Gameplay</option>
-                        <option value="Utilitaires">Utilitaires</option>
-                    </select>
+                <div class="stat-card">
+                    <i class="fa-solid fa-puzzle-piece"></i>
+                    <div>
+                        <h3 id="statTotalMods">0</h3>
+                        <p>Total Mods</p>
+                    </div>
                 </div>
-
-                <div class="form-group">
-                    <label>Version Minecraft *</label>
-                    <input type="text" id="modMcVersion" placeholder="ex: 1.20.4" required>
+                <div class="stat-card">
+                    <i class="fa-solid fa-palette"></i>
+                    <div>
+                        <h3 id="statTotalPacks">0</h3>
+                        <p>Total Resource Packs</p>
+                    </div>
                 </div>
-
-                <div class="form-group">
-                    <label>Mod Loader *</label>
-                    <input type="text" id="modLoader" placeholder="ex: Fabric / Forge" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Auteur *</label>
-                    <input type="text" id="modAuthor" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Tags (séparés par des virgules)</label>
-                    <input type="text" id="modTags" placeholder="fps, client">
-                </div>
-
-                <div class="form-group">
-                    <label>📅 Date/Heure de publication (optionnel)</label>
-                    <input type="datetime-local" id="modPublishAt">
-                    <small>Laissez vide pour publier directement.</small>
-                </div>
-
-                <div class="form-group">
-                    <label>Lien Modrinth (optionnel)</label>
-                    <input type="url" id="modModrinthUrl" placeholder="https://modrinth.com/mod/...">
-                </div>
-
-                <div class="form-group">
-                    <label>Lien CurseForge (optionnel)</label>
-                    <input type="url" id="modCurseforgeUrl" placeholder="https://www.curseforge.com/...">
-                </div>
-
-                <div class="form-group">
-                    <label>URL d'image *</label>
-                    <input type="url" id="modImageUrl" placeholder="https://..." required>
-                </div>
-
-                <div class="form-group">
-                    <label>Description *</label>
-                    <textarea id="modDescription" rows="3" required></textarea>
-                </div>
-
-                <div style="display:flex; gap:0.5rem; margin-top: 1rem;">
-                    <button type="submit" class="btn btn-primary">Enregistrer le Mod</button>
-                    <button type="button" id="cancelEditBtn" class="btn btn-secondary hidden">Annuler</button>
-                </div>
-            </form>
-        </section>
-
-        <section class="admin-section">
-            <h2 style="margin-top:0;">Mods enregistrés (<span id="statTotalMods">0</span>)</h2>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Image</th>
-                            <th>Nom</th>
-                            <th>Statut</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="adminModsTableBody"></tbody>
-                </table>
             </div>
-        </section>
+
+            <!-- FORMULAIRE DE CRÉATION ET ÉDITION -->
+            <section class="admin-section" id="formSection">
+                <h2 id="formTitle"><i class="fa-solid fa-plus-circle"></i> Ajouter un Contenu</h2>
+                <form id="contentForm" class="mod-form">
+                    <input type="hidden" id="itemId">
+                    
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label>Type de contenu *</label>
+                            <select id="itemType" required>
+                                <option value="mod">🧩 Mod Minecraft</option>
+                                <option value="resourcepack">🎨 Resource Pack (Texture)</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Nom *</label>
+                            <input type="text" id="itemName" placeholder="ex: Sodium ou Faithful 32x" required>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Catégorie *</label>
+                            <select id="itemCategory" required>
+                                <option value="Performance">Performance</option>
+                                <option value="Optimisation">Optimisation</option>
+                                <option value="Shaders">Shaders</option>
+                                <option value="Textures HD">Textures HD</option>
+                                <option value="PvP / UI">PvP / UI</option>
+                                <option value="Utilitaires">Utilitaires</option>
+                                <option value="Décoration">Décoration</option>
+                                <option value="Autres">Autres</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Version Minecraft *</label>
+                            <input type="text" id="itemVersion" placeholder="ex: 1.20.4 / 1.16.5" required>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Loader / Résolution</label>
+                            <input type="text" id="itemSubtype" placeholder="ex: Fabric / Forge ou 32x / 64x">
+                        </div>
+
+                        <div class="input-group">
+                            <label>Lien de Téléchargement *</label>
+                            <input type="url" id="itemDownloadUrl" placeholder="https://..." required>
+                        </div>
+
+                        <div class="input-group full-width">
+                            <label>URL de l'image / Banner *</label>
+                            <input type="url" id="itemImageUrl" placeholder="https://..." required>
+                        </div>
+
+                        <div class="input-group full-width">
+                            <label>Description *</label>
+                            <textarea id="itemDescription" rows="3" placeholder="Description..." required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions" style="margin-top: 1rem; display: flex; gap: 10px;">
+                        <button type="submit" class="btn btn-primary" id="saveBtn"><i class="fa-solid fa-floppy-disk"></i> Enregistrer</button>
+                        <button type="button" class="btn btn-secondary hidden" id="cancelBtn"><i class="fa-solid fa-xmark"></i> Annuler</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- TABLEAU DES CONTENUS -->
+            <section class="admin-section">
+                <h2><i class="fa-solid fa-list"></i> Liste des Contenus (Modifier / Supprimer)</h2>
+                <div class="table-wrapper" style="overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Image</th>
+                                <th>Nom</th>
+                                <th>Catégorie</th>
+                                <th>Version</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTableBody">
+                            <!-- Rempli dynamiquement -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
     </div>
 
-    <script type="module" src="admin.js"></script>
+    <script src="admin.js"></script>
 </body>
 </html>
