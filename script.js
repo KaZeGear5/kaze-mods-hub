@@ -21,16 +21,13 @@ function renderMods() {
     const selectedCategory = activePill ? activePill.dataset.category : 'all';
     const sortVal = document.getElementById('sortSelect')?.value || 'recent';
 
-    const nowTime = Date.now();
+    const nowMs = Date.now();
 
-    // 1. Filtrage (Publication + Recherche + Catégorie)
+    // 1. Filtrage (Validation Date de publication + Recherche + Catégorie)
     let filtered = mods.filter(mod => {
-        // Si une date future est définie, on masque le mod sur le site principal
-        if (mod.publishAt) {
-            const publishTime = new Date(mod.publishAt).getTime();
-            if (publishTime > nowTime) {
-                return false;
-            }
+        // VÉRIFICATION DU TIMER: Si publishAt est dans le futur, on ne l'affiche pas sur le site
+        if (mod.publishAt && Number(mod.publishAt) > nowMs) {
+            return false;
         }
 
         const matchesSearch = (mod.name || '').toLowerCase().includes(searchVal) || 
@@ -48,7 +45,7 @@ function renderMods() {
         return matchesSearch && matchesCat;
     });
 
-    // 2. Tri
+    // 2. Tri des mods
     if (sortVal === 'name') {
         filtered.sort((a, b) => a.name.localeCompare(b.name));
     } else {
@@ -59,6 +56,7 @@ function renderMods() {
         resultsCount.textContent = `${filtered.length} mod(s) disponible(s)`;
     }
 
+    // Affichage quand aucun mod n'est visible
     if (filtered.length === 0) {
         grid.innerHTML = `
             <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted, #71717a); padding: 3rem 1rem;">
@@ -68,6 +66,7 @@ function renderMods() {
         return;
     }
 
+    // Rendu des cartes de mods
     grid.innerHTML = filtered.map(mod => `
         <article class="mod-card">
             <div class="mod-image-wrapper">
@@ -90,6 +89,7 @@ function renderMods() {
     `).join('');
 }
 
+// Initialisation au chargement du DOM
 document.addEventListener('DOMContentLoaded', () => {
     const loader = document.getElementById('app-loader');
     if (loader) {
@@ -99,6 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderMods();
 
+    // Écouteurs d'événements
     document.getElementById('searchInput')?.addEventListener('input', renderMods);
     document.getElementById('sortSelect')?.addEventListener('change', renderMods);
 
