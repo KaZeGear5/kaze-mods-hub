@@ -9,7 +9,7 @@ const adminModsTableBody = document.getElementById('adminModsTableBody');
 const cancelEditBtn = document.getElementById('cancelEditBtn');
 const formTitle = document.getElementById('formTitle');
 
-// 1. Simuler une connexion rapide (Local)
+// 1. Authentification locale
 if (loginForm) {
     loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -37,7 +37,7 @@ function checkAuth() {
     }
 }
 
-// 2. Charger les mods depuis localStorage
+// 2. Fonctions de stockage LocalStorage
 function getMods() {
     return JSON.parse(localStorage.getItem('kaze_mods')) || [];
 }
@@ -46,27 +46,37 @@ function saveMods(mods) {
     localStorage.setItem('kaze_mods', JSON.stringify(mods));
 }
 
+// 3. Chargement et affichage des mods dans le tableau Admin
 function loadAdminMods() {
     const modsList = getMods();
     const statTotal = document.getElementById('statTotalMods');
     if (statTotal) statTotal.innerText = modsList.length;
     
     if (adminModsTableBody) {
-        adminModsTableBody.innerHTML = modsList.map((m, index) => `
+        const now = new Date();
+        adminModsTableBody.innerHTML = modsList.map((m, index) => {
+            // Vérification si la date de publication est dans le futur
+            const isScheduled = m.publishAt && new Date(m.publishAt) > now;
+            const statusBadge = isScheduled 
+                ? `<span style="color: #f59e0b; font-size:0.8rem;">⏳ Programmé (${new Date(m.publishAt).toLocaleString('fr-FR')})</span>` 
+                : `<span style="color: #10b981; font-size:0.8rem;">✅ En ligne</span>`;
+
+            return `
             <tr>
                 <td><img src="${m.imageUrl || 'https://via.placeholder.com/40'}" class="thumb-img" alt="${m.name}"></td>
                 <td><strong>${m.name}</strong></td>
-                <td><span style="color: #10b981; font-size:0.8rem;">✅ En ligne</span></td>
+                <td>${statusBadge}</td>
                 <td>
                     <button onclick="editMod(${index})" class="btn btn-secondary" style="padding:0.4rem 0.6rem;"><i class="fa-solid fa-pen"></i></button>
                     <button onclick="deleteMod(${index})" class="btn btn-primary" style="padding:0.4rem 0.6rem;"><i class="fa-solid fa-trash"></i></button>
                 </td>
             </tr>
-        `).join('');
+        `;
+        }).join('');
     }
 }
 
-// 3. Soumettre et Enregistrer le Formulaire
+// 4. Enregistrement / Modification
 if (modForm) {
     modForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -77,15 +87,24 @@ if (modForm) {
         const mcVersion = document.getElementById('modMcVersion').value;
         const loader = document.getElementById('modLoader').value;
         const author = document.getElementById('modAuthor').value;
-        const modrinthUrl = document.getElementById('modModrinthUrl').value;
-        const curseforgeUrl = document.getElementById('modCurseforgeUrl').value;
+        const publishAt = document.getElementById('modPublishAt').value;
+        const modrinthUrl = document.getElementById('modModrinthUrl')?.value || '';
+        const curseforgeUrl = document.getElementById('modCurseforgeUrl')?.value || '';
         const description = document.getElementById('modDescription').value;
         const imageUrl = document.getElementById('modImageUrl').value.trim();
 
         const newMod = {
-            name, category, versions: mcVersion, loader, author,
+            name,
+            category,
+            versions: mcVersion,
+            loader,
+            author,
+            publishAt: publishAt || null,
             downloadUrl: modrinthUrl || curseforgeUrl || '#',
-            description, imageUrl
+            modrinthUrl,
+            curseforgeUrl,
+            description,
+            imageUrl
         };
 
         let mods = getMods();
@@ -103,18 +122,27 @@ if (modForm) {
     });
 }
 
+// 5. Édition
 window.editMod = (index) => {
     const mods = getMods();
     const m = mods[index];
     if (!m) return;
 
     document.getElementById('modId').value = index;
-    document.getElementById('modName').value = m.name;
-    document.getElementById('modCategory').value = m.category;
+    document.getElementById('modName').value = m.name || '';
+    document.getElementById('modCategory').value = m.category || 'Performance';
     document.getElementById('modMcVersion').value = m.versions || '';
     document.getElementById('modLoader').value = m.loader || '';
     document.getElementById('modAuthor').value = m.author || '';
-    document.getElementById('modModrinthUrl').value = m.downloadUrl || '';
+    document.getElementById('modPublishAt').value = m.publishAt || '';
+    
+    if (document.getElementById('modModrinthUrl')) {
+        document.getElementById('modModrinthUrl').value = m.modrinthUrl || m.downloadUrl || '';
+    }
+    if (document.getElementById('modCurseforgeUrl')) {
+        document.getElementById('modCurseforgeUrl').value = m.curseforgeUrl || '';
+    }
+    
     document.getElementById('modImageUrl').value = m.imageUrl || '';
     document.getElementById('modDescription').value = m.description || '';
 
@@ -123,6 +151,7 @@ window.editMod = (index) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
+// 6. Suppression
 window.deleteMod = (index) => {
     if (confirm("Supprimer ce mod ?")) {
         let mods = getMods();
@@ -141,5 +170,5 @@ function resetForm() {
     if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
 }
 
-// Initialisation au chargement
+// Lancement au chargement
 checkAuth();
